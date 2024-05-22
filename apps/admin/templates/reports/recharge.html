@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>充值报表</title>
+    {% include 'admin/common/header.html' %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin/admin/css/other/user.css') }}"/>
+    <style type="text/css">
+<!--      {# 设置table每一行的height #}-->
+      .layui-table-cell {
+           height: auto;
+           line-height: 50px;
+      }
+     </style>
+</head>
+<body class="pear-container">
+{# 查询表单 #}
+<div class="layui-card">
+    <div class="layui-card-body">
+        <form class="layui-form" action="" lay-filter="order-query-form">
+            <div class="layui-form-item">
+                <div class="layui-inline">
+                    <label class="layui-form-label">起始日期</label>
+                    <div class="layui-input-inline">
+                         <input class="layui-input" id="start_date" name="start_date" type="text" placeholder="yyyy-MM-dd">
+                    </div>
+                </div>
+                <div class="layui-inline">
+                    <label class="layui-form-label">终止日期</label>
+                    <div class="layui-input-inline">
+                         <input class="layui-input" id="end_date" name="end_date" type="text" placeholder="yyyy-MM-dd">
+                    </div>
+                </div>
+
+
+                <button class="pear-btn pear-btn-md pear-btn-primary" lay-submit lay-filter="order-query">
+                    <i class="layui-icon layui-icon-search"></i>
+                    查询
+                </button>
+                <button type="reset" class="pear-btn pear-btn-md">
+                    <i class="layui-icon layui-icon-refresh"></i>
+                    重置
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{# 表格 #}
+<div class="user-main user-collasped">
+    <div class="layui-card">
+        <div class="layui-card-body">
+            <table id="order-table" lay-filter="order-table"></table>
+        </div>
+    </div>
+</div>
+</body>
+
+{% include 'admin/common/footer.html' %}
+
+<script>
+  layui.use(['table', 'form', 'jquery', 'laydate'], function () {
+    let table = layui.table
+    let form = layui.form
+    let $ = layui.jquery
+    let laydate = layui.laydate;
+
+    let MODULE_PATH = '/admin/report/'
+
+    var start = laydate.render({
+        elem: '#start_date'
+        //,max:0//最大值为当前日期
+        ,trigger: 'click'
+        ,type: 'date'
+         ,done: function(value, date){
+            //console.log(date);
+            if(value && (value>$("#end_date").val())){
+                  /*开始时间大于结束时间时，清空结束时间*/
+                  $("#end_date").val("");
+            }
+
+            end.config.min ={
+              year:date.year,
+              month:date.month-1,
+              date: date.date,
+            };
+         }
+      });
+    var end = laydate.render({
+        elem: '#end_date'
+        //,min : 0//最大值为当前日期
+        ,trigger: 'click'
+        ,type: 'date'
+        ,done: function(value, date){
+            //console.log(date);
+            start.config.max={
+              year:date.year,
+              month:date.month-1,
+              date: date.date,
+            }
+         }
+      });
+
+    loadDicts();
+
+    // 表格数据
+    let cols = [
+      [
+        { title: '序号', type: 'numbers', align: 'center' },
+        { title: '统计日期', field: 'sta_date', align: 'center' },
+        { title: '成功笔数', field: 'succeed_count', align: 'center' },
+        { title: '失败笔数', field: 'failed_count', align: 'center' },
+        { title: '待支付笔数', field: 'waiting_count', align: 'center' },
+        { title: '<p style="color: green;">成功金额</p>', field: 'succeed_amount', align: 'center',
+            templet: function (data) {
+                let amount = data.succeed_amount;
+                //return amount > 0 ? `<p style="color: green;">￥ ${amount}</p>` : '￥' + amount;
+                return amount > 0 ? `<p style="color: green;">￥ ${amount}</p>` : amount;
+            }
+        },
+        { title: '<p style="color: red;">失败金额</p>', field: 'failed_amount', align: 'center',
+            templet: function (data) {
+                let amount = data.failed_amount;
+                return amount > 0 ? `<p style="color: red;">￥ ${amount}</p>` : amount;
+            }
+        },
+        { title: '<p style="color: blue;">待支付金额</p>', field: 'waiting_amount', align: 'center',
+            templet: function (data) {
+                let amount = data.waiting_amount;
+                return amount > 0 ? `<p style="color: blue;">￥ ${amount}</p>` : amount;
+            }
+        },
+      ]
+    ]
+
+    // 渲染表格数据
+    table.render({
+      elem: '#order-table',
+      url: MODULE_PATH + 'recharge/data',
+      page: true,
+      cols: cols,
+      skin: 'line',
+      height: 'full-148',
+      toolbar: '#order-toolbar', /*工具栏*/
+      text: { none: '暂无数据' },
+      defaultToolbar: [{ layEvent: 'refresh', icon: 'layui-icon-refresh' }, 'filter', 'print', 'exports'] /*默认工具栏*/
+    })
+
+    table.on('toolbar(order-table)', function (obj) {
+      if (obj.event === 'refresh') {
+        window.refresh()
+      }
+    })
+
+    form.on('submit(order-query)', function (data) {
+      window.refresh(data.field)
+      return false
+    })
+
+    window.refresh = function (param) {
+      table.reload('order-table', { where: param })
+    }
+
+
+  })
+</script>
+</html>

@@ -1,0 +1,122 @@
+INSERT INTO
+novel_flask.user_buy_record(user_id, book_id, book_name, book_index_id, book_index_name, buy_amount, create_time)
+SELECT 1, 1, 1, 1, 1, 1, 1
+FROM DUAL
+WHERE NOT EXISTS
+(
+SELECT 1 FROM novel_flask.user_buy_record where user_id = 1 and book_index_id = 2
+)
+
+# 查询是否已存在对应记录
+exists_query = UserBuyRecord.query.filter(
+    and_(UserBuyRecord.user_id == 1, UserBuyRecord.book_index_id == 2)
+).exists()
+
+# 插入记录
+insert_query = UserBuyRecord.__table__.insert().from_select(
+    ['user_id', book_id', book_name', book_index_id', book_index_name', buy_amount', create_time'],
+    db.session.query(
+        1, 1, 1, 1, 1, 1, datetime.now()
+    ).filter(~exists_query)
+)
+
+update novel_flask.user a
+set a.account_balance = a.account_balance - 1
+where a.id = {user_id} and a.account_balance >= 0
+and exists (select 1 from novel_flask.book_index b where b.id = 1)
+
+1.
+->flask sqlalchemy模型类UserBuyRecord.__table__之后，为什么在sql语句里现实的user_buy_record所在的数据库是pearadminflask，而非通过__bind_key__ = 'ds1'绑定的novel_flask数据库
+->根据提供的信息，可以做出以下推测：
+
+
+
+Flask SQLAlchemy模型类UserBuyRecord使用了__bind_key__属性来绑定到数据库"novel_flask"。
+
+当调用UserBuyRecord.__table__时，它返回的是对应模型类的数据库表的元数据对象。
+
+元数据对象包含表的信息，但不包含数据库的信息。
+
+SQL语句中显示的数据库名称"pearadminflask"可能是默认的数据库名称，而不是通过__bind_key__属性指定的"novel_flask"数据库。
+
+
+要确认这个问题的原因，可以检查以下几个方面：
+
+
+
+确保在Flask应用程序的配置中正确配置了数据库连接信息，并指定了"novel_flask"数据库。
+
+检查模型类UserBuyRecord的定义，确保__bind_key__属性正确设置为"ds1"。
+
+检查其他地方是否有对UserBuyRecord模型类执行了其他操作，可能会导致数据库连接发生变化。
+
+可以尝试在SQLAlchemy的查询中指定使用的数据库，例如使用db.session.query(UserBuyRecord).using_bind(‘novel_flask’)来确保查询使用正确的数据库连接。
+
+
+如果问题仍然存在，可能需要进一步调查和排查代码中的其他因素。
+
+->flask sqlalchemy在使用table.insert的时候，怎么同时指定数据源
+->在Flask SQLAlchemy中使用table.insert()方法插入数据时，可以通过指定bind参数来指定数据源。下面是一个示例：
+from flask_sqlalchemy import SQLAlchemy
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'your_database_uri'
+db = SQLAlchemy(app)
+
+# 假设有一个名为user_buy_record的表
+user_buy_record = db.Table('user_buy_record', db.metadata, autoload=True, autoload_with=db.engine)
+
+# 插入数据并指定数据源
+data = {'column1': 'value1', 'column2': 'value2'}
+insert_statement = user_buy_record.insert().values(**data).bind(db.get_engine(bind='your_bind_key'))
+db.session.execute(insert_statement)
+db.session.commit()
+在上述示例中，bind参数使用db.get_engine(bind='your_bind_key')来获取指定绑定键的数据库连接。确保将your_bind_key替换为您在模型类中指定的绑定键。
+
+
+通过这种方式，您可以在使用table.insert()方法时同时指定数据源。
+
+update novel_flask.user a
+set a.account_balance = a.account_balance - 1
+where a.id = 1 and a.account_balance >= 0
+and exists (select 1 from novel_flask.book_index b where b.id = 2)
+
+确实，上面的代码示例中更新 account_balance 和检查 BookIndex 表中记录的存在性被分为两步操作，这不能保证原子性。要确保这两个操作在一个原子事务中完成，我们需要在 SQLAlchemy 的查询中直接嵌入子查询，而不是先查询再更新。
+
+以下是一个如何在 Flask-SQLAlchemy 中一步完成这个操作的示例：
+
+python
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import exists
+
+db = SQLAlchemy()
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    account_balance = db.Column(db.Integer, nullable=False)
+    # ... 其他字段 ...
+
+class BookIndex(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    # ... 其他字段 ...
+
+# 使用 Flask-SQLAlchemy ORM 执行一步更新操作
+with db.session.begin():
+    # 使用 update 方法直接执行 SQL 更新，同时结合 exists 子查询
+    result = db.session.query(User).filter(User.id == 1,
+                                            User.account_balance >= 0,
+                                            exists().where(BookIndex.id == 2)).update(
+        {User.account_balance: User.account_balance - 1}, synchronize_session=False)
+
+    # 如果 result 为 0，表示没有记录被更新
+    if result == 0:
+        db.session.rollback()  # 如果需要，可以在这里回滚事务
+    else:
+        db.session.commit()  # 提交事务
+在这个示例中，我们使用 db.session.query(User).update() 方法直接执行 SQL 更新操作，而不是先加载对象然后修改它的属性。update() 方法允许我们传递一个字典，其中包含了要更新的字段和它们的新值。synchronize_session=False 表示我们不希望 SQLAlchemy 同步 session 中的对象状态，因为我们是直接执行 SQL 语句而不是通过 ORM 对象来更新。
+
+同时，我们在 filter() 方法中嵌入了 exists().where(BookIndex.id == 2) 子查询，以确保只有当 BookIndex 表中存在 id 为 2 的记录时，才更新 User 表的 account_balance 字段。
+
+最后，我们检查 update() 方法的返回值 result，它表示被更新的记录数。如果 result 为 0，表示没有记录被更新，这时你可以选择回滚事务（如果需要的话）。否则，我们提交事务以完成更新操作。
+
+这样，更新 account_balance 和检查 BookIndex 表中记录的存在性就被封装在一个原子事务中了。

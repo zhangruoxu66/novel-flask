@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>收益报表</title>
+    {% include 'admin/common/header.html' %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin/admin/css/other/user.css') }}"/>
+    <style type="text/css">
+<!--      {# 设置table每一行的height #}-->
+      .layui-table-cell {
+           height: auto;
+           line-height: 50px;
+      }
+     </style>
+</head>
+<body class="pear-container">
+{# 查询表单 #}
+<div class="layui-card">
+    <div class="layui-card-body">
+        <form id="author-form" class="layui-form" action="" lay-filter="author-income-query-form">
+            <div class="layui-form-item">
+                <div class="layui-inline">
+                    <label class="layui-form-label">作者名</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="author_name" placeholder="" class="layui-input">
+                    </div>
+                </div>
+
+                <button class="pear-btn pear-btn-md pear-btn-primary" lay-submit lay-filter="author-income-query">
+                    <i class="layui-icon layui-icon-search"></i>
+                    查询
+                </button>
+                <button type="reset" class="pear-btn pear-btn-md">
+                    <i class="layui-icon layui-icon-refresh"></i>
+                    重置
+                </button>
+            </div>
+        </form>
+        <form id="book-form" class="layui-form" action="" lay-filter="book-income-query-form" style="display: none;">
+            <div class="layui-form-item">
+                <div class="layui-inline">
+                    <label class="layui-form-label">作者名</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="author_name" placeholder="" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-inline">
+                    <label class="layui-form-label">小说名</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="book_name" placeholder="" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-inline">
+                    <label class="layui-form-label">作品方向</label>
+                    <div class="layui-input-inline">
+                        <select id="work_direction" name="work_direction" class="dict-select" dict-key="work_direction">
+                        </select>
+                    </div>
+                </div>
+
+                <br/>
+
+                <div class="layui-inline">
+                    <label class="layui-form-label">小说分类</label>
+                    <div class="layui-input-inline">
+                        <select id="category" name="category" lay-search="">
+                          <option value="">直接选择或搜索选择</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!--<div class="layui-inline">
+                    <label class="layui-form-label">排列方式</label>
+                    <div class="layui-input-inline">
+                        <select id="order_by" name="order_by" class="dict-select" dict-key="book_order_by_type">
+                        </select>
+                    </div>
+                </div>-->
+
+                <button class="pear-btn pear-btn-md pear-btn-primary" lay-submit lay-filter="book-income-query">
+                    <i class="layui-icon layui-icon-search"></i>
+                    查询
+                </button>
+                <button type="reset" class="pear-btn pear-btn-md">
+                    <i class="layui-icon layui-icon-refresh"></i>
+                    重置
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{# 表格 #}
+<div class="layui-card">
+    <div class="layui-card-body">
+        <div class="layui-tab layui-tab-card">
+            <ul class="layui-tab-title">
+                <li id="author-income" class="layui-this">按作家统计</li>
+                <li id="book-income">按小说统计</li>
+            </ul>
+            <div class="layui-tab-content">
+                <div class="layui-tab-item layui-show">
+                    <table style="margin-top: 10px;" id="report-author-table" lay-filter="report-author-table"></table>
+                </div>
+                <div class="layui-tab-item">
+                    <table style="margin-top: 10px;" id="report-book-table" lay-filter="report-book-table"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+
+{% include 'admin/common/footer.html' %}
+
+<script>
+  layui.use(['table', 'form', 'jquery'], function () {
+    let table = layui.table
+    let form = layui.form
+    let $ = layui.jquery
+
+    let MODULE_PATH = '/admin/report/'
+
+    loadDicts();
+    loadCategories('category')
+
+    /*$('ul[class="layui-tab-title"] > li').click(function() { // 绑定点击事件，可以通过类名、id等进行筛选
+      // alert('你点击了 ' + $(this).text()); // 弹出提示框提示点击的内容
+      if ('author-income' == this.id) {
+        $('.layui-inline').hide();
+        $('#layui-inline-author').show();
+      } else {
+        $('div[class="layui-inline"]').show();
+      }
+    });*/
+
+    $('ul[class="layui-tab-title"] > li').click(function() { // 绑定点击事件，可以通过类名、id等进行筛选
+      // alert('你点击了 ' + $(this).text()); // 弹出提示框提示点击的内容
+      if ('author-income' == this.id) {
+        $('#author-form').show();
+        $('#book-form').hide();
+      } else {
+        $('#author-form').hide();
+        $('#book-form').show();
+      }
+    });
+
+    // 表格数据
+    let colsAuthor = [
+      [
+        { title: '序号', type: 'numbers', align: 'center' },
+        { title: '作家', field: 'author_name', align: 'center' },
+        { title: '总金额', field: 'total_amount', align: 'center',
+            templet: function (data) {
+                return '￥' + formatNumber(data.total_amount / 100);
+            }
+        },
+      ]
+    ]
+
+    let colsBook = [
+      [
+        { title: '小说', field: 'book_name', align: 'center' },
+        { title: '创作方向', field: 'work_direction_name', align: 'center' },
+        { title: '分类', field: 'cat_name', align: 'center' },
+        { title: '作家', field: 'author_name', align: 'center' },
+        { title: '总金额', field: 'total_amount', align: 'center',
+            templet: function (data) {
+                return '￥' + formatNumber(data.total_amount / 100);
+            }
+        },
+      ]
+    ]
+
+    table.render({
+      elem: '#report-author-table',
+      url: MODULE_PATH + 'income/data/author',
+      page: true,
+      cols: colsAuthor,
+      skin: 'line',
+      toolbar: false
+    })
+
+    table.render({
+      elem: '#report-book-table',
+      url: MODULE_PATH + 'income/data/book',
+      page: true,
+      cols: colsBook,
+      skin: 'line',
+      toolbar: false
+    })
+
+    /*form.on('submit(income-query)', function (data) {
+      selectedTable = $('ul[class="layui-tab-title"] > li[class="layui-this"]')[0];
+      // console.log(selectedTable.id);
+      if ('author-income' == selectedTable.id) {
+        table.reload('report-author-table', { where: data.field });
+      } else {
+        table.reload('report-book-table', { where: data.field });
+      }
+      return false
+    })*/
+
+    form.on('submit(author-income-query)', function (data) {
+      table.reload('report-author-table', { where: data.field });
+      return false
+    })
+
+    form.on('submit(book-income-query)', function (data) {
+      table.reload('report-book-table', { where: data.field });
+      return false
+    })
+
+  })
+</script>
+</html>

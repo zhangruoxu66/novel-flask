@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>邮件管理</title>
+    {% include 'admin/common/header.html' %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin/admin/css/other/user.css') }}"/>
+</head>
+<body class="pear-container">
+{# 查询表单 #}
+<div class="layui-card">
+    <div class="layui-card-body">
+        <form class="layui-form" action="" lay-filter="cache-query-form">
+            <div class="layui-form-item">
+                <label class="layui-form-label">键(key)</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="prefix" autocomplete="off" class="layui-input" placeholder="请输入键（key）或前缀">
+                </div>
+
+                <button class="pear-btn pear-btn-md pear-btn-primary" lay-submit lay-filter="cache-query">
+                    <i class="layui-icon layui-icon-search"></i>
+                    查询
+                </button>
+                <button type="reset" class="pear-btn pear-btn-md">
+                    <i class="layui-icon layui-icon-refresh"></i>
+                    重置
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{# 用户表格 #}
+<div class="user-main user-collasped">
+    <div class="layui-card">
+        <div class="layui-card-body">
+            <table id="cache-table" lay-filter="cache-table"></table>
+        </div>
+    </div>
+</div>
+</body>
+{# 表格操作 #}
+<script type="text/html" id="cache-toolbar">
+    {% if authorize("admin:cache:add") %}
+        <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add">
+            <i class="pear-icon pear-icon-add"></i>
+            新增
+        </button>
+    {% endif %}
+    {% if authorize("admin:cache:remove") %}
+        <button class="pear-btn pear-btn-md" lay-event="batchRemove">
+            <i class="pear-icon pear-icon-ashbin"></i>
+            删除
+        </button>
+    {% endif %}
+</script>
+
+{# 用户删除操作 #}
+<script type="text/html" id="cache-bar">
+    {% if authorize("admin:cache:edit") %}
+        <button class="pear-btn pear-btn-primary pear-btn-sm" lay-event="edit"><i
+                class="layui-icon layui-icon-edit"></i>
+        </button>
+    {% endif %}
+    {% if authorize("admin:cache:remove") %}
+        <button class="pear-btn pear-btn-danger pear-btn-sm" lay-event="remove"><i
+                class="pear-icon pear-icon-ashbin"></i>
+        </button>
+    {% endif %}
+</script>
+
+{% include 'admin/common/footer.html' %}
+
+<script>
+  layui.use(['table', 'form', 'jquery', 'popup', 'common'], function () {
+    let table = layui.table
+    let form = layui.form
+    let $ = layui.jquery
+    let dtree = layui.dtree
+    let popup = layui.popup
+    let common = layui.common
+    let MODULE_PATH = '/admin/cache/'
+
+    // 表格数据
+    let cols = [
+      [
+        {% if authorize("admin:cache:remove") %}
+          { type: 'checkbox' },
+        {% endif %}
+        { title: '键（key）', field: 'key', align: 'center'},
+        { title: '值（value）', field: 'value', align: 'center' },
+        { title: '操作', toolbar: '#cache-bar', align: 'center' }
+      ]
+    ]
+
+    // 渲染表格数据
+    table.render({
+      elem: '#cache-table',
+      url: MODULE_PATH + 'data',
+      page: false,
+      cols: cols,
+      skin: 'line',
+      height: 'full-148',
+      toolbar: '#cache-toolbar', /*工具栏*/
+      text: { none: '暂无缓存' },
+      defaultToolbar: [{ layEvent: 'refresh', icon: 'layui-icon-refresh' }, 'filter', 'print', 'exports'] /*默认工具栏*/
+    })
+
+
+
+    table.on('tool(cache-table)', function (obj) {
+      if (obj.event === 'remove') {
+        window.remove(obj)
+      } else if (obj.event === 'edit') {
+        window.edit(obj)
+      }
+    })
+
+    table.on('toolbar(cache-table)', function (obj) {
+      if (obj.event === 'add') {
+        window.add()
+      } else if (obj.event === 'refresh') {
+        window.refresh()
+      } else if (obj.event === 'batchRemove') {
+        window.batchRemove(obj)
+      }
+    })
+
+    form.on('submit(cache-query)', function (data) {
+      window.refresh(data.field)
+      return false
+    })
+
+    window.add = function () {
+      layer.open({
+        type: 2,
+        title: '新增',
+        shade: 0.1,
+        area: ['550px', '550px'],
+        content: MODULE_PATH + 'add'
+      })
+    }
+
+    window.edit = function (obj) {
+      layer.open({
+        type: 2,
+        title: '修改',
+        shade: 0.1,
+        area: ['450px', '500px'],
+        content: MODULE_PATH + 'edit?key=' + obj.data['key']
+      })
+    }
+
+    window.remove = function (obj) {
+      layer.confirm('确定要删除', { icon: 3, title: '提示' }, function (index) {
+        layer.close(index)
+        let loading = layer.load()
+        var names = [obj.data['key']]
+        $.ajax({
+          url: MODULE_PATH + 'remove',
+          data: { names: names },
+          dataType: 'json',
+          type: 'delete',
+          success: function (result) {
+            layer.close(loading)
+            if (result.success) {
+              popup.success(result.msg, function () {
+                obj.del()
+              })
+            } else {
+              popup.failure(result.msg)
+            }
+          }
+        })
+      })
+    }
+
+    window.batchRemove = function (obj) {
+      let data = table.checkStatus(obj.config.id).data
+      if (data.length === 0) {
+        layer.msg('未选中数据', {
+          icon: 3,
+          time: 1000
+        })
+        return false
+      }
+      var names = []
+      var hasCheck = table.checkStatus('cache-table')
+      var hasCheckData = hasCheck.data
+      if (hasCheckData.length > 0) {
+        $.each(hasCheckData, function (index, element) {
+          names.push(element.key)
+        })
+      }
+      console.log(names);
+      layer.confirm('确定要删除选中数据', {
+        icon: 3,
+        title: '提示'
+      }, function (index) {
+        layer.close(index)
+        let loading = layer.load()
+        $.ajax({
+
+          url: MODULE_PATH + 'remove',
+          data: { names: names },
+          dataType: 'json',
+          type: 'delete',
+          success: function (result) {
+            layer.close(loading)
+            if (result.success) {
+              popup.success(result.msg, function () {
+                table.reload('cache-table')
+              })
+            } else {
+              popup.failure(result.msg)
+            }
+          }
+        })
+      })
+    }
+
+    window.refresh = function (param) {
+      table.reload('cache-table', { where: param })
+    }
+  })
+</script>
+</html>

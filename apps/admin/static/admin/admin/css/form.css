@@ -1,0 +1,11 @@
+label.required:after {   /* 给红色的必填项打红色星号（文字后）如果打前面用before*/
+    content: ' *';
+    color: red;
+}
+
+/* 这种写法也可以 */
+/*
+.layui-form-label.required:after {
+    content: ' *';
+    color: red;
+}*/

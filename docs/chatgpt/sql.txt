@@ -1,0 +1,184 @@
+select a.* from 
+ (
+        
+ (
+select 
+0 as statistics_type, 
+"" as work_direction, 
+"" as cat_name, 
+count(*) as total_book_count, 
+sum(word_count) as total_word_count, 
+sum(visit_count) as total_visit_count, 
+sum(comment_count) as total_comment_count 
+from novel_flask.book 
+) 
+        
+union all 
+
+ (
+select 
+1 as statistics_type, 
+"男频" as work_direction, 
+"" as cat_name, 
+count(*) as total_book_count, 
+sum(word_count) as total_word_count, 
+sum(visit_count) as total_visit_count, 
+sum(comment_count) as total_comment_count 
+from novel_flask.book 
+where work_direction = 0 
+) 
+
+union all 
+
+ (
+select 
+3 as statistics_type, 
+"男频" as work_direction, 
+cat_name, 
+count(*) as total_book_count, 
+sum(word_count) as total_word_count, 
+sum(visit_count) as total_visit_count, 
+sum(comment_count) as total_comment_count 
+from novel_flask.book 
+where work_direction = 0 
+group by cat_id, cat_name 
+order by cat_id 
+) 
+
+union all 
+
+ (
+select 
+2 as statistics_type, 
+"女频" as work_direction, 
+"" as cat_name, 
+count(*) as total_book_count, 
+sum(word_count) as total_word_count, 
+sum(visit_count) as total_visit_count, 
+sum(comment_count) as total_comment_count 
+from novel_flask.book 
+where work_direction = 1 
+) 
+
+union all 
+
+ (
+select 
+4 as statistics_type, 
+"女频" as work_direction, 
+cat_name, 
+count(*) as total_book_count, 
+sum(word_count) as total_word_count, 
+sum(visit_count) as total_visit_count, 
+sum(comment_count) as total_comment_count 
+from novel_flask.book 
+where work_direction = 1 
+group by cat_id, cat_name 
+order by cat_id 
+) 
+
+) a 
+limit 0, 10
+
+将你的 SQL 查询转换为 Flask SQLAlchemy 的形式可能涉及到一些复杂性和多个查询的组合。以下是一个可能的转换方式。请注意，为了简化示例，我假设 novel_flask.book 表在 Flask SQLAlchemy 中对应一个名为 Book 的模型，且该模型具有以下字段：word_count, visit_count, comment_count, work_direction, cat_id, cat_name。
+
+首先，我们需要定义 Book 模型：
+
+python
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()
+
+class Book(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    word_count = db.Column(db.Integer, nullable=False)
+    visit_count = db.Column(db.Integer, nullable=False)
+    comment_count = db.Column(db.Integer, nullable=False)
+    work_direction = db.Column(db.Integer, nullable=False)  # 假设 0 代表男频，1 代表女频
+    cat_id = db.Column(db.Integer, nullable=True)
+    cat_name = db.Column(db.String(100), nullable=True)
+    # 其他字段...
+
+    # 关系和辅助方法可以在这里定义
+接下来，我们将编写 Flask SQLAlchemy 查询，以匹配原始 SQL 的功能：
+
+python
+from sqlalchemy import func, literal_column, case, cast, Integer
+from sqlalchemy.orm import aliased
+
+# 创建别名以在联合查询中区分不同的查询部分
+subquery_all = aliased(Book)
+subquery_male = aliased(Book)
+subquery_male_cat = aliased(Book)
+subquery_female = aliased(Book)
+subquery_female_cat = aliased(Book)
+
+# 基本统计（所有书籍）
+base_statistics = db.session.query(
+    literal_column("0").label("statistics_type"),
+    literal_column("''").label("work_direction"),
+    literal_column("''").label("cat_name"),
+    func.count(subquery_all.id).label("total_book_count"),
+    func.sum(subquery_all.word_count).label("total_word_count"),
+    func.sum(subquery_all.visit_count).label("total_visit_count"),
+    func.sum(subquery_all.comment_count).label("total_comment_count")
+).select_from(subquery_all)
+
+# 男频书籍统计
+male_statistics = db.session.query(
+    literal_column("1").label("statistics_type"),
+    literal_column("'男频'").label("work_direction"),
+    literal_column("''").label("cat_name"),
+    func.count(subquery_male.id).label("total_book_count"),
+    func.sum(subquery_male.word_count).label("total_word_count"),
+    func.sum(subquery_male.visit_count).label("total_visit_count"),
+    func.sum(subquery_male.comment_count).label("total_comment_count")
+).select_from(subquery_male).filter(subquery_male.work_direction == 0)
+
+# 男频分类书籍统计
+male_cat_statistics = db.session.query(
+    literal_column("3").label("statistics_type"),
+    literal_column("'男频'").label("work_direction"),
+    subquery_male_cat.cat_name.label("cat_name"),
+    func.count(subquery_male_cat.id).label("total_book_count"),
+    func.sum(subquery_male_cat.word_count).label("total_word_count"),
+    func.sum(subquery_male_cat.visit_count).label("total_visit_count"),
+    func.sum(subquery_male_cat.comment_count).label("total_comment_count")
+).select_from(subquery_male_cat).filter(subquery_male_cat.work_direction == 0).group_by(subquery_male_cat.cat_id, subquery_male_cat.cat_name)
+
+# 女频书籍统计
+female_statistics = db.session.query(
+    literal_column("2").label("statistics_type"),
+    literal_column("'女频'").label("work_direction"),
+    literal_column("''").label("cat_name"),
+    func.count(subquery_female.id).label("total_book_count"),
+    func.sum(subquery_female.word_count).label("total_word_count"),
+    func.sum(subquery_female.visit_count).label("total_visit_count"),
+    func.sum(subquery_female.comment_count).label("total_comment_count")
+).select_from(subquery_female).filter(subquery_female.work_direction == 1)
+
+# 女频分类书籍统计
+female_cat_statistics = db.session.query(
+    literal_column("4").label("statistics_type"),
+    literal_column("'女频'").label("work_direction"),
+    subquery_female_cat.cat_name.label("cat_name"),
+    func.count(subquery_female_cat.id).label("total_book_count"),
+    func.sum(subquery_female_cat.word_count).label("total_word_count"),
+    func.sum(subquery_female_cat.visit_count).label("total_visit_count"),
+    func.sum(subquery_female_cat.comment_count).label("total_comment_count")
+).select_from(subquery_female_cat).filter(subquery_female_cat.work_direction == 1).group_by(subquery_female_cat.cat_id, subquery_female_cat.cat_name)
+
+# 将所有查询组合成一个联合查询
+union_all_query = base_statistics.union_all(
+    male_statistics,
+    male_cat_statistics,
+    female_statistics,
+    female_cat_statistics
+)
+
+# 执行联合查询并获取结果
+statistics_results = union_all_query.all()
+
+# 处理结果（例如，遍历结果并打印）
+for result in statistics_results:
+    print(result)

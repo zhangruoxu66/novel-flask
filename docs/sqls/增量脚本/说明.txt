@@ -1,0 +1,3 @@
+执行了docs/sqls下的2个脚本，则无需执行该目录下的增量脚本
+
+只有执行的是全量数据仓库（https://gitee.com/dhqcxf/novel-flask-data）的时候，才需要执行增量脚本

@@ -1,0 +1,39 @@
+<script src="{{ url_for('static', filename='admin/component/layui/layui.js') }}"></script>
+<script src="{{ url_for('static', filename='admin/component/pear/pear.js') }}"></script>
+<script src="{{ url_for('static', filename='admin/admin/js/dict.js') }}"></script>
+<script src="{{ url_for('static', filename='admin/admin/js/book_category.js') }}"></script>
+<script src="{{ url_for('static', filename='admin/admin/js/utils.js') }}"></script>
+<script src="{{ url_for('static', filename='admin/admin/js/data.js') }}"></script>
+<script src="{{ url_for('static', filename='admin/admin/js/common.js') }}"></script>
+<script src="{{ url_for('static', filename='socket.io.min.js') }}"></script>
+<script>
+    var flaskRedisToken = localStorage.getItem("flask_redis_token");
+    var flaskRedisTokenUid = localStorage.getItem("flask_redis_token_uid");
+    if (flaskRedisToken && flaskRedisTokenUid) {
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+        //console.log('连接成功');
+        // 当连接建立时，发送用户ID给服务器
+        socket.on('connect', function() {
+            socket.emit('register', { uid: flaskRedisTokenUid });
+        });
+
+        socket.on('response', function(data) {
+            //console.log(data);
+        });
+
+        socket.on('server_message', function(data) {
+            alert(data.data)
+            //console.log(data);
+        });
+
+        socket.on('message', function(data) {
+            //console.log(data);
+        });
+
+        function sendMessage() {
+            socket.emit('message', 'Hello, WebSocket!');
+        }
+
+        sendMessage();
+    }
+</script>

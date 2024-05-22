@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>会话管理</title>
+    {% include 'admin/common/header.html' %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin/admin/css/other/user.css') }}"/>
+</head>
+<body class="pear-container">
+{# 查询表单 #}
+<div class="layui-card">
+    <div class="layui-card-body">
+        <form class="layui-form" action="" lay-filter="session-query-form">
+            <div class="layui-form-item">
+                <label class="layui-form-label">用户名</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="username" autocomplete="off" class="layui-input" placeholder="请输入完整用户名">
+                </div>
+
+                <button class="pear-btn pear-btn-md pear-btn-primary" lay-submit lay-filter="session-query">
+                    <i class="layui-icon layui-icon-search"></i>
+                    查询
+                </button>
+                <button type="reset" class="pear-btn pear-btn-md">
+                    <i class="layui-icon layui-icon-refresh"></i>
+                    重置
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{# 用户表格 #}
+<div class="user-main user-collasped">
+    <div class="layui-card">
+        <div class="layui-card-body">
+            <table id="session-table" lay-filter="session-table"></table>
+        </div>
+    </div>
+</div>
+</body>
+{# 表格操作 #}
+<script type="text/html" id="session-toolbar">
+    {% if authorize("admin:session:kickout") %}
+        <button class="pear-btn pear-btn-md" lay-event="batchKickout">
+            <i class="pear-icon pear-icon-ashbin"></i>
+            踢下线
+        </button>
+    {% endif %}
+</script>
+
+{# 用户删除操作 #}
+<script type="text/html" id="session-bar">
+    {% if authorize("admin:session:kickout") %}
+        <button class="pear-btn pear-btn-danger pear-btn-sm" lay-event="kickout"><i
+                class="pear-icon pear-icon-ashbin"></i>
+        </button>
+    {% endif %}
+</script>
+
+{% include 'admin/common/footer.html' %}
+
+{# 冻结与解冻 #}
+<script type="text/html" id="session-status">
+    <input type="checkbox" name="freeze" value="{{ "{{ d.username }}" }}" lay-skin="switch" lay-text="正常|冻结"
+           lay-filter="session-status"
+            {{ "{{# if(d.status){ }} checked {{# } }}" }} />
+</script>
+
+<script>
+  layui.use(['table', 'form', 'jquery', 'popup', 'common'], function () {
+    let table = layui.table
+    let form = layui.form
+    let $ = layui.jquery
+    let dtree = layui.dtree
+    let popup = layui.popup
+    let common = layui.common
+    let MODULE_PATH = '/admin/session/'
+
+    // 表格数据
+    let cols = [
+      [
+        {% if authorize("admin:session:kickout") %}
+          { type: 'checkbox' },
+        {% endif %}
+        { title: '用户名', field: 'username', align: 'center'},
+        { title: 'token值', field: 'token', align: 'center', width: 280 },
+        { title: '上次活跃时间', field: 'last_activity', align: 'center' },
+        { title: '状态', field: 'status', align: 'center', templet: '#session-status' },
+        { title: '操作', toolbar: '#session-bar', align: 'center' }
+      ]
+    ]
+
+    // 渲染表格数据
+    table.render({
+      elem: '#session-table',
+      url: MODULE_PATH + 'data',
+      page: true,
+      cols: cols,
+      skin: 'line',
+      height: 'full-148',
+      toolbar: '#session-toolbar', /*工具栏*/
+      text: { none: '暂无会话信息' },
+      defaultToolbar: [{ layEvent: 'refresh', icon: 'layui-icon-refresh' }, 'filter', 'print', 'exports'] /*默认工具栏*/
+    })
+
+    table.on('tool(session-table)', function (obj) {
+      if (obj.event === 'kickout') {
+        window.kickout(obj)
+      }
+    })
+
+    table.on('toolbar(session-table)', function (obj) {
+      if (obj.event === 'add') {
+        window.add()
+      } else if (obj.event === 'refresh') {
+        window.refresh()
+      } else if (obj.event === 'batchKickout') {
+        window.batchKickout(obj)
+      }
+    })
+
+    form.on('submit(session-query)', function (data) {
+      window.refresh(data.field)
+      return false
+    })
+
+    form.on('switch(session-status)', function (obj) {
+      let operate
+      if (obj.elem.checked) {
+        operate = 'unfreeze'
+      } else {
+        operate = 'freeze'
+      }
+      let loading = layer.load()
+      var usernames = [this.value]
+      $.ajax({
+        url: MODULE_PATH + operate,
+        //data: JSON.stringify({ username: this.value }),
+        data: { usernames: usernames },
+        dataType: 'json',
+        //contentType: 'application/json',
+        type: 'put',
+        success: function (result) {
+          layer.close(loading)
+          if (result.success) {
+            popup.success(result.msg)
+          } else {
+            popup.failure(result.msg)
+          }
+        }
+      })
+    });
+
+    window.kickout = function (obj) {
+      layer.confirm('确定要剔除', { icon: 3, title: '提示' }, function (index) {
+        layer.close(index)
+        let loading = layer.load()
+        var usernames = [obj.data['username']]
+        $.ajax({
+          url: MODULE_PATH + 'kickout',
+          data: { usernames: usernames },
+          dataType: 'json',
+          type: 'put',
+          success: function (result) {
+            layer.close(loading)
+            if (result.success) {
+              popup.success(result.msg, function () {
+                obj.del()
+              })
+            } else {
+              popup.failure(result.msg)
+            }
+          }
+        })
+      })
+    }
+
+    window.batchKickout = function (obj) {
+      let data = table.checkStatus(obj.config.id).data
+      if (data.length === 0) {
+        layer.msg('未选中数据', {
+          icon: 3,
+          time: 1000
+        })
+        return false
+      }
+      var usernames = []
+      var hasCheck = table.checkStatus('session-table')
+      var hasCheckData = hasCheck.data
+      if (hasCheckData.length > 0) {
+        $.each(hasCheckData, function (index, element) {
+          usernames.push(element.username)
+        })
+      }
+      layer.confirm('确定要剔除选中会话', {
+        icon: 3,
+        title: '提示'
+      }, function (index) {
+        layer.close(index)
+        let loading = layer.load()
+        $.ajax({
+
+          url: MODULE_PATH + 'kickout',
+          data: { usernames: usernames },
+          dataType: 'json',
+          type: 'put',
+          success: function (result) {
+            layer.close(loading)
+            if (result.success) {
+              popup.success(result.msg, function () {
+                table.reload('session-table')
+              })
+            } else {
+              popup.failure(result.msg)
+            }
+          }
+        })
+      })
+    }
+
+    window.refresh = function (param) {
+      table.reload('session-table', { where: param })
+    }
+  })
+</script>
+</html>

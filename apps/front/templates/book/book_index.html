@@ -1,0 +1,81 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>{{ book.book_name }}目录,{{ book.book_name }}最新章节列表_{{ website.name }}</title>
+    <meta name="keywords" content="{{ book.book_name }},{{ book.book_name }}目录,'{{ book.book_name }}最新章节列表"/>
+    <meta name="description"
+          content="{{ website.name }}小说为您提供{{ book.book_name }}目录,{{ book.book_name }}最新章节列表,{{ book.book_name }}全文阅读,{{ book.book_name }}免费阅读,{{ book.book_name }}下载"/>
+    <link rel="stylesheet" href="/static/css/main.css"/>
+    <link rel="stylesheet" href="/static/css/book.css"/>
+    {% include 'common/header.html' %}
+</head>
+<body>
+
+{% include 'common/top.html' %}
+
+<div class="main box_center cf">
+    <div class="nav_sub">
+        <a href="/">{{ website.name }}</a>&gt;<a href="/book/bookclass.html?c={{ book.cat_id }}">{{ book.cat_name }}</a>&gt;
+        <a href="/book/{{ book.id }}.html">{{ book.book_name }}</a>&gt;
+        <a href="/book/indexList-{{ book.id }}.html'">作品目录</a>
+    </div>
+    <div class="channelWrap channelChapterlist cf mb50">
+
+        <div class="bookMain">
+            <div class="bookCover cf">
+                <div class="book_info1">
+                    <div class="tit">
+                        <h1>{{ book.book_name }}</h1><!--<i class="vip_b">VIP</i>-->
+                    </div>
+                    <ul class="list">
+                        <li>
+                            <span>作者：<a href="javascript:void(0)">{{ book.author_name }}</a></span>
+                            <span>类别：<a href="/book/bookclass.html?c={{ book.cat_id }}">{{ book.cat_name }}</a></span>
+                            <span>
+                                状态：
+                                {% if book.book_status == 0 %}
+                                <em class="black3">连载中</em>
+                                {% else %}
+                                <em class="black3">已完结</em>
+                                {% endif %}
+                            </span>
+                            <span>总点击：<em class="black3" id="cTotal">{{ book.visit_count }}</em></span>
+                            <span>总字数：<em class="black3">{{ book.word_count }}</em></span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="dirWrap cf">
+                <h3>正文({{ bookIndexCount }})</h3>
+                <div class="dirList">
+                    <ul>
+                        {% for bookIndex in bookIndexList %}
+                            {% if bookIndex.is_vip != 1 %}
+                            <li>
+                                <a href="/book/{{ book.id }}/{{ bookIndex.id }}.html" >
+                                    <span>{{ bookIndex.index_name }}</span><i class="red" > [免费]</i>
+                                </a>
+                            </li>
+                            {% else %}
+                            <li>
+                                <a href="/book/{{ book.id }}/{{ bookIndex.id }}.html">
+                                    {{ bookIndex.index_name }}
+                                </a>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+
+    {% include 'common/footer.html' %}
+    {% include 'common/js.html' %}
+    <script src="/static/javascript/bookdetail.js" type="text/javascript"></script>
+
+</body>
+</html>

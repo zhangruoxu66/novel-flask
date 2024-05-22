@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>作家列表</title>
+    {% include 'admin/common/header.html' %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin/admin/css/other/user.css') }}"/>
+    <style type="text/css">
+<!--      {# 设置table每一行的height #}-->
+      .layui-table-cell {
+           height: auto;
+           line-height: 50px;
+      }
+     </style>
+</head>
+<body class="pear-container">
+{# 查询表单 #}
+<div class="layui-card">
+    <div class="layui-card-body">
+        <form class="layui-form" action="" lay-filter="order-query-form">
+            <div class="layui-form-item">
+                <div class="layui-inline">
+                    <label class="layui-form-label">订单状态</label>
+                    <div class="layui-input-inline">
+                        <select id="pay_status" name="pay_status" class="dict-select" dict-key="pay_status">
+                        </select>
+                    </div>
+                </div>
+
+                <button class="pear-btn pear-btn-md pear-btn-primary" lay-submit lay-filter="order-query">
+                    <i class="layui-icon layui-icon-search"></i>
+                    查询
+                </button>
+                <button type="reset" class="pear-btn pear-btn-md">
+                    <i class="layui-icon layui-icon-refresh"></i>
+                    重置
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{# 表格 #}
+<div class="user-main user-collasped">
+    <div class="layui-card">
+        <div class="layui-card-body">
+            <table id="order-table" lay-filter="order-table"></table>
+        </div>
+    </div>
+</div>
+</body>
+
+{# 用户删除操作 #}
+<script type="text/html" id="order-bar">
+    {% if authorize("admin:order:detail") %}
+        <button class="pear-btn pear-btn-warming pear-btn-sm" lay-event="detail">
+            <i class="layui-icon layui-icon-transfer"></i>
+        </button>
+    {% endif %}
+</script>
+
+{% include 'admin/common/footer.html' %}
+
+<script type="text/html" id="log-createTime">
+    {{ '  {{layui.util.toDateString(d.create_time,  "yyyy-MM-dd HH:mm:ss")}' |safe }}}
+</script>
+
+<script>
+  layui.use(['table', 'form'], function () {
+    let table = layui.table
+    let form = layui.form
+    let MODULE_PATH = '/admin/order/'
+
+    loadDicts();
+
+    // 表格数据
+    let cols = [
+      [
+        { title: '序号', type: 'numbers', align: 'center' },
+        { title: '订单号', field: 'out_trade_no', align: 'center' },
+        { title: '充值金额', field: 'total_amount', align: 'center' },
+        { title: '充值用户', field: 'username', align: 'center' },
+        { title: '状态', field: 'pay_status_name', align: 'center' },
+        { title: '创建时间', field: 'create_time', templet: '#log-createTime', align: 'center' }
+      ]
+    ]
+
+    // 渲染表格数据
+    table.render({
+      elem: '#order-table',
+      url: MODULE_PATH + 'data',
+      page: true,
+      cols: cols,
+      skin: 'line',
+      height: 'full-148',
+      toolbar: '#order-toolbar', /*工具栏*/
+      text: { none: '暂无数据' },
+      defaultToolbar: [{ layEvent: 'refresh', icon: 'layui-icon-refresh' }, 'filter', 'print', 'exports'] /*默认工具栏*/
+    })
+
+    table.on('toolbar(order-table)', function (obj) {
+      if (obj.event === 'refresh') {
+        window.refresh()
+      }
+    })
+
+    form.on('submit(order-query)', function (data) {
+      window.refresh(data.field)
+      return false
+    })
+
+    window.refresh = function (param) {
+      table.reload('order-table', { where: param })
+    }
+
+
+  })
+</script>
+</html>

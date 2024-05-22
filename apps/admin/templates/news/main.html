@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>新闻列表</title>
+  {% include 'admin/common/header.html' %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='admin/admin/css/other/user.css') }}" />
+</head>
+
+<body class="pear-container">
+  {# 表格 #}
+  <div class="user-main user-collasped">
+    <div class="layui-card">
+      <div class="layui-card-body">
+        <table id="news-table" lay-filter="news-table"></table>
+      </div>
+    </div>
+  </div>
+</body>
+{# 表格操作 #}
+<script type="text/html" id="news-toolbar">
+    {% if authorize("admin:news:add") %}
+        <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add">
+            <i class="pear-icon pear-icon-add"></i>
+            新增
+        </button>
+    {% endif %}
+    {% if authorize("admin:news:remove") %}
+        <button class="pear-btn pear-btn-md" lay-event="batchRemove">
+            <i class="pear-icon pear-icon-ashbin"></i>
+            删除
+        </button>
+    {% endif %}
+</script>
+
+{# 修改、删除操作 #}
+<script type="text/html" id="news-bar">
+    {% if authorize("admin:news:edit") %}
+        <button class="pear-btn pear-btn-primary pear-btn-sm" lay-event="edit"><i
+                class="layui-icon layui-icon-edit"></i>
+        </button>
+    {% endif %}
+    {% if authorize("admin:news:remove") %}
+        <button class="pear-btn pear-btn-danger pear-btn-sm" lay-event="remove"><i
+                class="pear-icon pear-icon-ashbin"></i>
+        </button>
+    {% endif %}
+</script>
+
+{% include 'admin/common/footer.html' %}
+
+<script>
+  layui.use(['table', 'form', 'jquery', 'popup', 'common'], function () {
+    let table = layui.table
+    let form = layui.form
+    let $ = layui.jquery
+    let popup = layui.popup
+    let common = layui.common
+    let MODULE_PATH = '/admin/news/'
+
+    // 表格数据
+    let cols = [
+      [
+        {% if authorize("admin:news:remove") %}
+          { type: 'checkbox' },
+        {% endif %}
+        { title: '序号', type: 'numbers', align: 'center' },
+        { title: '分类名', field: 'cat_name', align: 'center' },
+        { title: '来源', field: 'source_name', align: 'center' },
+        { title: '标题', field: 'title', align: 'center' },
+        { title: '发布时间', field: 'create_time', align: 'center',
+           templet: function (d) {
+                return layui.util.toDateString(d.create_time,  "yyyy-MM-dd HH:mm:ss");
+            }
+        },
+        { title: '操作', toolbar: '#news-bar', align: 'center', width: 130 }
+      ]
+    ]
+
+    // 渲染表格数据
+    table.render({
+      elem: '#news-table',
+      url: MODULE_PATH + 'data',
+      page: true,
+      cols: cols,
+      skin: 'line',
+      height: 'full-148',
+      toolbar: '#news-toolbar', /*工具栏*/
+      text: { none: '暂无数据' },
+      defaultToolbar: [{ layEvent: 'refresh', icon: 'layui-icon-refresh' }, 'filter', 'print', 'exports'] /*默认工具栏*/
+    })
+
+
+    table.on('tool(news-table)', function (obj) {
+      if (obj.event === 'remove') {
+        window.remove(obj)
+      } else if (obj.event === 'edit') {
+        window.edit(obj)
+      }
+    })
+
+    table.on('toolbar(news-table)', function (obj) {
+      if (obj.event === 'add') {
+        window.add()
+      } else if (obj.event === 'refresh') {
+        window.refresh()
+      } else if (obj.event === 'batchRemove') {
+        window.batchRemove(obj)
+      }
+    })
+
+    form.on('submit(news-query)', function (data) {
+      window.refresh(data.field)
+      return false
+    })
+
+    window.add = function () {
+      layer.open({
+        type: 2,
+        title: '新增',
+        shade: 0.1,
+        area: ['100%', '100%'],
+        content: MODULE_PATH + 'add'
+      })
+    }
+
+    window.edit = function (obj) {
+      console.log(obj);
+      layer.open({
+        type: 2,
+        title: '修改',
+        shade: 0.1,
+        area: ['100%', '100%'],
+        content: MODULE_PATH + 'edit?id=' + obj.data['id']
+      })
+    }
+
+    window.remove = function (obj) {
+      layer.confirm('确定要删除', { icon: 3, title: '提示' }, function (index) {
+        layer.close(index)
+        let loading = layer.load()
+        var ids = [obj.data['id']]
+        $.ajax({
+          url: MODULE_PATH + 'remove',
+          dataType: 'json',
+          type: 'delete',
+          data: { ids: ids },
+          success: function (result) {
+            layer.close(loading)
+            if (result.success) {
+              popup.success(result.msg, function () {
+                obj.del()
+              })
+            } else {
+              popup.failure(result.msg)
+            }
+          }
+        })
+      })
+    }
+
+    window.batchRemove = function (obj) {
+      let data = table.checkStatus(obj.config.id).data
+      if (data.length === 0) {
+        layer.msg('未选中数据', {
+          icon: 3,
+          time: 1000
+        })
+        return false
+      }
+      var ids = []
+      var hasCheck = table.checkStatus('news-table')
+      var hasCheckData = hasCheck.data
+      if (hasCheckData.length > 0) {
+        $.each(hasCheckData, function (index, element) {
+          ids.push(element.id)
+        })
+      }
+      layer.confirm('确定要删除选中数据', {
+        icon: 3,
+        title: '提示'
+      }, function (index) {
+        layer.close(index)
+        let loading = layer.load()
+        $.ajax({
+
+          url: MODULE_PATH + 'remove',
+          data: { ids: ids },
+          dataType: 'json',
+          type: 'delete',
+          success: function (result) {
+            layer.close(loading)
+            if (result.success) {
+              popup.success(result.msg, function () {
+                table.reload('news-table')
+              })
+            } else {
+              popup.failure(result.msg)
+            }
+          }
+        })
+      })
+    }
+
+    window.refresh = function (param) {
+      table.reload('news-table', { where: param })
+    }
+  })
+</script>
+
+</html>

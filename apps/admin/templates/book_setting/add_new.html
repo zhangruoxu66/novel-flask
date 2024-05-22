@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>小说推荐</title>
+    {% include 'admin/common/header.html' %}
+</head>
+<body>
+<form class="layui-form">
+    <div class="mainBox">
+        <div class="main-container">
+            <div class="main-container">
+                <div class="layui-form-item">
+                    <label class="layui-form-label required">小说：</label>
+                    <div class="layui-input-block">
+                        <!--<input type="hidden" name="book_id" lay-verify="required" lay-reqtext="请选择需要推荐的小说！">-->
+                        <!--<input type="text" id="book-id" name="book_id" class="layui-input" readonly="readonly" lay-verify="required" lay-reqtext="请选择需要推荐的小说！"/>-->
+                        <input type="hidden" id="book-id" name="book_id" value="" lay-verify="required" lay-reqtext="请选择需要推荐的小说！">
+                        <input type="text" id="book-select" class="layui-input" readonly="readonly" lay-verify="required" lay-reqtext="请选择需要推荐的小说！"/>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label required">排序号：</label>
+                    <div class="layui-input-block">
+                       <input type="text" name="sort" lay-verify="required|sort" autocomplete="off" placeholder="排序"
+                               class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label required">推荐类型：</label>
+                    <div class="layui-input-block">
+                        <select id="type" name="type" lay-verify="required" class="dict-select" dict-key="book_rec_type">
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="bottom">
+        <div class="button-container">
+            <button type="submit" class="pear-btn pear-btn-primary pear-btn-sm" lay-submit="" lay-filter="book-setting-save">
+                <i class="layui-icon layui-icon-ok"></i>
+                提交
+            </button>
+            <button type="reset" class="pear-btn pear-btn-sm">
+                <i class="layui-icon layui-icon-refresh"></i>
+                重置
+            </button>
+        </div>
+    </div>
+</form>
+{% include 'admin/common/footer.html' %}
+<script>
+  layui.use(['form', 'jquery', 'tableSelect'], function () {
+    let form = layui.form
+    let $ = layui.jquery
+
+    loadDicts();
+
+    var tableSelect = layui.tableSelect;
+    tableSelect.render({
+        //elem: '#book-id',
+        elem: '#book-select',
+        size: 'sm', // 定义输入框input对象 必填
+        checkedKey: 'id', // 表格的唯一建值，非常重要，影响到选中状态 必填
+        searchKey: 'keyword', // 搜索输入框的name值 默认keyword
+        searchPlaceholder: '请输入小说名/作者名关键词进行搜索', // 搜索输入框的提示文字 默认关键词搜索
+        page: false,
+        table: { // 定义表格参数，与LAYUI的TABLE模块一致，只是无需再定义表格elem
+            page: true,
+            text: { none: '暂无数据' },
+            url: '/admin/book/select_data',
+            where: {word_count_gt0: 1},
+            cols: [[
+				{ type: 'radio' },
+				{ field: 'id', title: '小说ID' },
+				{ field: 'book_name', title: '小说名称' },
+				{ field: 'author_name', title: '作者笔名' }
+			]]
+        },
+        done: function (elem, data) {
+            // 选择完后的回调，包含2个返回值 elem:返回之前input对象；data:表格返回的选中的数据 []
+	        // 拿到data[]后 就按照业务需求做想做的事情啦~比如加个隐藏域放ID...
+			$('#book-id').val(data.data[0].id)
+			elem.val('《' + data.data[0].book_name + '》——' + data.data[0].author_name)
+        }
+    })
+
+    form.verify({
+            //我们既支持上述函数式的方式，也支持下述数组的形式
+            //数组的两个值分别代表：[正则匹配、匹配不符时的提示文字]
+            sort: function (value) {
+		        if (value.length > 2) {
+		            return '排序号最多两位';
+		        }
+		    },
+        });
+
+    form.on('submit(book-setting-save)', function (data) {
+      let loading = layer.load()
+      $.ajax({
+        url: '/admin/book_setting/save',
+        data: JSON.stringify(data.field),
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'post',
+        success: function (result) {
+          layer.close(loading)
+          if (result.success) {
+            layer.msg(result.msg, { icon: 1, time: 1000 }, function () {
+              parent.layer.close(parent.layer.getFrameIndex(window.name))//关闭当前页
+              parent.layui.table.reload('book-setting-table')
+            })
+          } else {
+            layer.msg(result.msg, { icon: 2, time: 1000 })
+          }
+        }
+      })
+      return false
+    })
+  })
+</script>
+<script>
+</script>
+</body>
+</html>

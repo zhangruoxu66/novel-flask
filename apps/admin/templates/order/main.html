@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>订单</title>
+    {% include 'admin/common/header.html' %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin/admin/css/other/console2.css') }}"/>
+</head>
+<body class="pear-container">
+
+<div class="layui-card">
+    <div class="layui-card-body">
+        <div class="layui-tab layui-tab-card">
+            <div class="layui-tab-content">
+                <div class="layui-tab-item layui-show">
+                    <table style="margin-top: 10px;" id="log-login-table" lay-filter="log-login-table"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+
+<script type="text/html" id="log-createTime">
+    {{ '  {{layui.util.toDateString(d.create_time,  "yyyy-MM-dd HH:mm:ss")}' |safe }}}
+</script>
+{% include 'admin/common/footer.html' %}
+<script>
+  layui.use(['table', 'form', 'jquery', 'element', 'util'], function () {
+    let table = layui.table
+    let form = layui.form
+
+    let MODULE_PATH = '/admin/order/'
+
+    let cols = [
+      [
+        { title: '序号', type: 'numbers', align: 'center' },
+        { title: '订单号', field: 'out_trade_no', align: 'center' },
+        { title: '充值金额', field: 'total_amount', align: 'center' },
+        { title: '充值用户', field: 'username', align: 'center' },
+        { title: '状态', field: 'pay_status_name', align: 'center' },
+        { title: '创建时间', field: 'create_time', templet: '#log-createTime', align: 'center' }
+      ]
+    ]
+
+    table.render({
+      elem: '#log-login-table',
+      url: MODULE_PATH + 'data',
+      page: true,
+      cols: cols,
+      skin: 'line',
+      toolbar: false
+    })
+  })
+</script>
+</html>

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>友情链接</title>
+    {% include 'admin/common/header.html' %}
+</head>
+<body class="pear-container">
+{# 表格 #}
+<div class="user-main user-collasped">
+    <div class="layui-card">
+        <div class="layui-card-body">
+            <table id="friend-link-table" lay-filter="friend-link-table"></table>
+        </div>
+    </div>
+</div>
+</body>
+{# 表格操作 #}
+<script type="text/html" id="friend-link-toolbar">
+    {% if authorize("admin:friend_link:add") %}
+        <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add">
+            <i class="pear-icon pear-icon-add"></i>
+            新增
+        </button>
+    {% endif %}
+    {% if authorize("admin:friend_link:remove") %}
+        <button class="pear-btn pear-btn-md" lay-event="batchRemove">
+            <i class="pear-icon pear-icon-ashbin"></i>
+            删除
+        </button>
+    {% endif %}
+</script>
+
+{# 修改、删除操作 #}
+<script type="text/html" id="friend-link-bar">
+    {% if authorize("admin:friend_link:edit") %}
+        <button class="pear-btn pear-btn-primary pear-btn-sm" lay-event="edit"><i
+                class="layui-icon layui-icon-edit"></i>
+        </button>
+    {% endif %}
+    {% if authorize("admin:friend_link:remove") %}
+        <button class="pear-btn pear-btn-danger pear-btn-sm" lay-event="remove"><i
+                class="pear-icon pear-icon-ashbin"></i>
+        </button>
+    {% endif %}
+</script>
+
+{% include 'admin/common/footer.html' %}
+
+{# 启动与禁用 #}
+<script type="text/html" id="is-open">
+    <input type="checkbox" name="enable" value="{{ "{{ d.id }}" }}" lay-skin="switch" lay-text="启用|禁用"
+           lay-filter="is-open"
+            {{ "{{# if(d.is_open==1){ }} checked {{# } }}" }} />
+</script>
+
+<script>
+  layui.use(['table', 'form', 'jquery', 'popup', 'common'], function () {
+    let table = layui.table
+    let form = layui.form
+    let $ = layui.jquery
+    let dtree = layui.dtree
+    let popup = layui.popup
+    let common = layui.common
+    let MODULE_PATH = '/admin/friend_link/'
+
+    loadDicts();
+
+    // 表格数据
+    let cols = [
+      [
+        {% if authorize("admin:friend_link:remove") %}
+          { type: 'checkbox' },
+        {% endif %}
+        { title: '序号', type: 'numbers', align: 'center' },
+        { title: 'ID', field: 'id', align: 'center', hide: true },
+        { title: '链接名', field: 'link_name', align: 'center' },
+        { title: '链接url', field: 'link_url', align: 'center' },
+        { title: '排序号', field: 'sort', align: 'center' },
+        { title: '是否开启', field: 'is_open_name', align: 'center', hide: true },
+        { title: '是否开启', field: 'is_open', align: 'center', templet: '#is-open' },
+        { title: '操作', toolbar: '#friend-link-bar', align: 'center', width: 130 }
+      ]
+    ]
+
+    // 渲染表格数据
+    table.render({
+      elem: '#friend-link-table',
+      url: MODULE_PATH + 'data',
+      page: true,
+      cols: cols,
+      skin: 'line',
+      height: 'full-148',
+      toolbar: '#friend-link-toolbar', /*工具栏*/
+      text: { none: '暂无数据' },
+      defaultToolbar: [{ layEvent: 'refresh', icon: 'layui-icon-refresh' }, 'filter', 'print', 'exports'] /*默认工具栏*/
+    })
+
+
+
+    table.on('tool(friend-link-table)', function (obj) {
+      if (obj.event === 'remove') {
+        window.remove(obj)
+      } else if (obj.event === 'edit') {
+        window.edit(obj)
+      }
+    })
+
+    table.on('toolbar(friend-link-table)', function (obj) {
+      if (obj.event === 'add') {
+        window.add()
+      } else if (obj.event === 'refresh') {
+        window.refresh()
+      } else if (obj.event === 'batchRemove') {
+        window.batchRemove(obj)
+      }
+    })
+
+    form.on('submit(friend-link-query)', function (data) {
+      window.refresh(data.field)
+      return false
+    })
+
+    form.on('switch(is-open)', function (obj) {
+      let operate
+      if (obj.elem.checked) {
+        operate = 'enable'
+      } else {
+        operate = 'disable'
+      }
+      let loading = layer.load()
+      $.ajax({
+        url: MODULE_PATH + operate,
+        data: JSON.stringify({ id: this.value }),
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'put',
+        success: function (result) {
+          layer.close(loading)
+          if (result.success) {
+            popup.success(result.msg)
+          } else {
+            popup.failure(result.msg)
+          }
+        }
+      })
+    })
+
+    window.add = function () {
+      layer.open({
+        type: 2,
+        title: '新增',
+        shade: 0.1,
+        area: ['550px', '550px'],
+        content: MODULE_PATH + 'add'
+      })
+    }
+
+    window.edit = function (obj) {
+    console.log(obj);
+      layer.open({
+        type: 2,
+        title: '修改',
+        shade: 0.1,
+        area: ['550px', '550px'],
+        content: MODULE_PATH + 'edit?id=' + obj.data['id']
+      })
+    }
+
+    window.remove = function (obj) {
+      layer.confirm('确定要删除', { icon: 3, title: '提示' }, function (index) {
+        layer.close(index)
+        let loading = layer.load()
+        var ids = [obj.data['id']]
+        console.log(obj)
+        $.ajax({
+          url: MODULE_PATH + 'remove',
+          dataType: 'json',
+          type: 'delete',
+          data: { ids: ids },
+          success: function (result) {
+            layer.close(loading)
+            if (result.success) {
+              popup.success(result.msg, function () {
+                obj.del()
+              })
+            } else {
+              popup.failure(result.msg)
+            }
+          }
+        })
+      })
+    }
+
+    window.batchRemove = function (obj) {
+      let data = table.checkStatus(obj.config.id).data
+      if (data.length === 0) {
+        layer.msg('未选中数据', {
+          icon: 3,
+          time: 1000
+        })
+        return false
+      }
+      var ids = []
+      var hasCheck = table.checkStatus('friend-link-table')
+      var hasCheckData = hasCheck.data
+      if (hasCheckData.length > 0) {
+        $.each(hasCheckData, function (index, element) {
+          ids.push(element.id)
+        })
+      }
+      {#console.log(ids);#}
+      layer.confirm('确定要删除选中数据', {
+        icon: 3,
+        title: '提示'
+      }, function (index) {
+        layer.close(index)
+        let loading = layer.load()
+        $.ajax({
+
+          url: MODULE_PATH + 'remove',
+          data: { ids: ids },
+          dataType: 'json',
+          type: 'delete',
+          success: function (result) {
+            layer.close(loading)
+            if (result.success) {
+              popup.success(result.msg, function () {
+                table.reload('friend-link-table')
+              })
+            } else {
+              popup.failure(result.msg)
+            }
+          }
+        })
+      })
+    }
+
+    window.refresh = function (param) {
+      table.reload('friend-link-table', { where: param })
+    }
+  })
+</script>
+</html>

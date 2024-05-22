@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>小说推荐修改</title>
+  {% include 'admin/common/header.html' %}
+</head>
+
+<body>
+  <form class="layui-form" action="" lay-filter="myForm">
+    <div class="mainBox">
+      <div class="main-container">
+        <div class="main-container">
+
+          <input type="hidden" name="id" value="">
+
+          <div class="layui-form-item">
+            <label class="layui-form-label required">分类名：</label>
+            <div class="layui-input-block">
+              <input type="text" name="name" lay-verify="required|name" autocomplete="off" placeholder="分类名"
+                class="layui-input">
+            </div>
+          </div>
+
+          <div class="layui-form-item">
+            <label class="layui-form-label required">排序号：</label>
+            <div class="layui-input-block">
+              <input type="text" name="sort" lay-verify="required|sort" autocomplete="off" placeholder="排序"
+                class="layui-input" value="">
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+    <div class="bottom">
+      <div class="button-container">
+        <button type="submit" class="pear-btn pear-btn-primary pear-btn-sm" lay-submit=""
+          lay-filter="news-category-update">
+          <i class="layui-icon layui-icon-ok"></i>
+          提交
+        </button>
+        <button type="reset" class="pear-btn pear-btn-sm">
+          <i class="layui-icon layui-icon-refresh"></i>
+          重置
+        </button>
+      </div>
+    </div>
+  </form>
+  {% include 'admin/common/footer.html' %}
+  <script>
+    layui.use(['form', 'jquery'], function () {
+      let form = layui.form
+      let $ = layui.jquery
+
+      let data = loadData('/admin/news_category/get_detail', {id: getUrlParam('id')}, "myForm");
+
+      form.verify({
+        //我们既支持上述函数式的方式，也支持下述数组的形式
+        //数组的两个值分别代表：[正则匹配、匹配不符时的提示文字]
+        name: function (value) {
+          if (value.length > 10) {
+            return '分类名最多10个字符';
+          }
+        },
+        sort: function (value) {
+          if (value.length > 2) {
+            return '排序号最多2位';
+          }
+        },
+      });
+
+      form.on('submit(news-category-update)', function (data) {
+        $.ajax({
+          url: '/admin/news_category/update',
+          data: JSON.stringify(data.field),
+          dataType: 'json',
+          contentType: 'application/json',
+          type: 'put',
+          success: function (result) {
+            if (result.success) {
+              layer.msg(result.msg, { icon: 1, time: 1000 }, function () {
+                parent.layer.close(parent.layer.getFrameIndex(window.name))//关闭当前页
+                parent.layui.table.reload('news-category-table')
+                //parent.render()
+              })
+            } else {
+              layer.msg(result.msg, { icon: 2, time: 1000 })
+            }
+          }
+        })
+        return false
+      })
+    })
+  </script>
+  <script>
+  </script>
+</body>
+
+</html>

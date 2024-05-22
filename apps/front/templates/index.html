@@ -1,0 +1,509 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <title>{{ website.name }}_原创小说网站</title>
+    <meta name="keywords" content="{{ website.keyword }}"/>
+    <meta name="description" content="{{ website.description }}"/>
+    <link href="/static/favicon.ico" type="image/x-icon" rel="shortcut icon"/>
+    <link href="/static/favicon.ico" type="image/x-icon" rel="Bookmark"/>
+    <link rel="stylesheet" href="/static/css/main.css"/>
+    {% include 'common/header.html' %}
+</head>
+<body>
+
+{% include 'common/top.html' %}
+
+<div class="main box_center cf">
+    <div class="channelWrap channelBanner cf">
+        <div class="leftBox">
+            <div class="sliderContent">
+                {% if bookMap.get(0) %}
+                <dl class="scBigImg" id="carouseBig">
+                    {% for book in bookMap.get(0) %}
+                    <dd class="{% if bookMap.get(0).index(book) == 0 %}on{% endif %}">
+                        <a href="/book/{{ book.book_id }}.html">
+                            <img src="{{ book.pic_url }}" alt="{{ book.book_name }}"/>
+                        </a>
+                    </dd>
+                    {% endfor %}
+                </dl>
+                {% endif %}
+                <div class="scSmallImg" id="carouseSmall">
+                    {% if bookMap.get(0) %}
+                    <ul>
+                        {% for book in bookMap.get(0) %}
+                        <li class="{% if bookMap.get(0).index(book) == 0 %}on{% endif %}">
+                            <img src="{{ book.pic_url }}" alt="{{ book.book_name }}"/>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="hot_articles">
+                {% if bookMap.get(1) and bookMap.get(1) | length > 0 %}
+                <dl class="hot_recommend" id="topBooks1">
+                    <dt><a href="/book/{{ bookMap.get(1)[0].book_id }}.html">{{ bookMap.get(1)[0].book_name }}</a></dt>
+                    {% if bookMap.get(1) | length > 1 %}
+                    <dd>
+                        <a href="/book/{{ bookMap.get(1)[1].book_id }}.html">{{ bookMap.get(1)[1].book_name }}</a>
+                        {% if bookMap.get(1) | length > 2 %}
+                        <a href="/book/{{ bookMap.get(1)[2].book_id }}.html">{{ bookMap.get(1)[2].book_name }}</a>
+                        {% endif %}
+                    </dd>
+                    {% endif %}
+                    {% if bookMap.get(1) | length > 3 %}
+                    <dd>
+                        <a href="/book/{{ bookMap.get(1)[3].book_id }}.html">{{ bookMap.get(1)[3].book_name }}</a>
+                        {% if bookMap.get(1) | length > 4 %}
+                        <a href="/book/{{ bookMap.get(1)[4].book_id }}.html">{{ bookMap.get(1)[4].book_name }}</a>
+                        {% endif %}
+                    </dd>
+                    {% endif %}
+                </dl>
+                {% endif %}
+
+                {% if bookMap.get(1) and bookMap.get(1) | length > 5 %}
+                <dl class="hot_recommend" id="topBooks2">
+                    <dt><a href="/book/{{ bookMap.get(1)[5].book_id }}.html">{{ bookMap.get(1)[5].book_name }}</a></dt>
+                    {% if bookMap.get(1) | length > 6 %}
+                    <dd>
+                        <a href="/book/{{ bookMap.get(1)[6].book_id }}.html">{{ bookMap.get(1)[6].book_name }}</a>
+                        {% if bookMap.get(1) | length > 7 %}
+                        <a href="/book/{{ bookMap.get(1)[7].book_id }}.html">{{ bookMap.get(1)[7].book_name }}</a>
+                        {% endif %}
+                    </dd>
+                    {% endif %}
+                    {% if bookMap.get(1) | length > 8 %}
+                    <dd>
+                        <a href="/book/{{ bookMap.get(1)[8].book_id }}.html">{{ bookMap.get(1)[8].book_name }}</a>
+                        {% if bookMap.get(1) | length > 9 %}
+                        <a href="/book/{{ bookMap.get(1)[9].book_id }}.html">{{ bookMap.get(1)[9].book_name }}</a>
+                        {% endif %}
+                    </dd>
+                    {% endif %}
+                </dl>
+                {% endif %}
+
+                <dl class="hot_notice" id="indexNews">
+                    {% for news in newsList %}
+                        <dd style="text-align:left;"><span>[{{ news.cat_name }}]</span><a href="/about/newsInfo-{{ news.id }}.html">{{ news.title }}</a>
+                        </dd>
+                    {% endfor %}
+                </dl>
+            </div>
+        </div>
+        <div class="rightBox">
+            <div class="title cf" id="weekcommend">
+                <h3>本周强推</h3>
+            </div>
+            <div class="rightList">
+                {% if bookMap.get(2) %}
+                <ul id="currentWeek">
+                    {% for book in bookMap.get(2) %}
+                    <li class="{% if bookMap.get(2).index(book) == 0 %}on num1{% elif bookMap.get(2).index(book) < 3 %}num{{ bookMap.get(2).index(book) + 1 }}{% endif %}">
+                        <div class="book_name">
+                            <i>{{ bookMap.get(2).index(book) + 1 }}</i>
+                            <a class="name" href="/book/{{ book.book_id }}.html">{{ book.book_name }}</a>
+                        </div>
+                        <div class="book_intro">
+                            <div class="cover">
+                                <a href="/book/{{ book.book_id }}.html">
+                                    <img src="{{ book.pic_url }}" alt="{{ book.book_name }}">
+                                </a>
+                            </div>
+                            <a class="txt" href="/book/{{ book.book_id }}.html">{{ book.book_name }}</a>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="channelWrap channelPic cf">
+        <div class="leftBox">
+            <div class="title">
+                <h2 class="on">热门推荐</h2>
+            </div>
+            
+            {% if bookMap.get(3) %}
+            <div class="picRecommend cf" id="hotRecBooks">
+                {% for book in bookMap.get(3) %}
+                <div class="itemsList">
+                    <a class="items_img" href="/book/{{ book.book_id }}.html">
+                        <img class="lazyload" src="/static/images/default.gif" data-src="{{ book.pic_url }}" alt="{{ book.book_name }}">
+                    </a>
+                    <div class="items_txt">
+                        <h4><a href="/book/{{ book.book_id }}.html">{{ book.book_name }}</a></h4>
+                        <p class="author"><a href="javascript:void(0)">作者：{{ book.author_name }}</a></p>
+                        <p class="intro"><a href="/book/{{ book.book_id }}.html">{{ book.book_desc | safe }}</a>
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+        </div>
+        <div id="bookrank1_ShowBookRank">
+            <div class="rightBox ">
+                <div class="title cf">
+                    <h3 class="on">点击榜单</h3>
+                </div>
+                <div class="rightList">
+                    <ul id="clickRankBooks">
+
+
+                    </ul>
+                    <div class="more"><a href="/book/book_ranking">查看更多&gt;</a></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="channelWrap channelPic cf">
+        <div class="leftBox">
+            <div class="title">
+                <h2>精品推荐</h2>
+            </div>
+
+            {% if bookMap.get(4) %}
+            <div class="picRecommend cf" id="classicBooks">
+                {% for book in bookMap.get(4) %}
+                <div class="itemsList">
+                    <a class="items_img" href="/book/{{ book.book_id }}.html">
+                        <img class="lazyload" src="/static/images/default.gif" data-src="{{ book.pic_url }}" alt="{{ book.book_name }}">
+                    </a>
+                    <div class="items_txt">
+                        <h4><a href="/book/{{ book.book_id }}.html">{{ book.book_name }}</a></h4>
+                        <p class="author"><a href="javascript:void(0)">作者：{{ book.author_name }}</a></p>
+                        <p class="intro"><a href="/book/{{ book.book_id }}.html">{{ book.book_desc | safe }}</a>
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+        </div>
+        <div id="bookrank2_ShowBookRank">
+            <div class="rightBox ">
+                <div class="title cf">
+                    <h3 class="on">新书榜单</h3>
+                </div>
+                <div class="rightList">
+                    <ul id="newRankBooks">
+
+
+                    </ul>
+                    <div class="more"><a href="/book/book_ranking?type=1">查看更多&gt;</a></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="channelWrap channelTable cf">
+        <div class="leftBox">
+            <div class="title">
+                <h2>最新更新</h2>
+            </div>
+            <div class="updateTable">
+                <table cellpadding="0" cellspacing="0">
+                    <thead>
+                    <tr>
+                        <th class="style">类别</th>
+                        <th class="name">书名</th>
+                        <th class="chapter">最新章节</th>
+                        <th class="author">作者</th>
+                        <th class="time">更新时间</th>
+                    </tr>
+                    </thead>
+                    <tbody id="newRankBooks2">
+
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div id="bookrank5_ShowBookRank">
+            <div class="rightBox mb20">
+                <div class="title cf">
+                    <h3 class="on">更新榜单</h3>
+                </div>
+                <div class="rightList">
+                    <ul id="updateRankBooks">
+
+
+                    </ul>
+                    <div class="more"><a href="/book/book_ranking?type=2">查看更多&gt;</a></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<div class="friend_link">
+    <div class="box_center cf" id="friendLink">
+        <span>友情链接：</span>
+    </div>
+</div>
+
+{% include 'common/footer.html' %}
+
+
+</body>
+{% include 'common/js.html' %}
+<script src="/static/javascript/lazyload.js" type="text/javascript"></script>
+<script language="javascript" type="text/javascript">
+    var $div = $('.scBigImg dl');//放置大图容器
+    var $nav = $('.scSmallImg li');//放置缩略图容器
+    var num = -1;
+    var open;
+
+    function changeKv() {
+        if (num >= $nav.length - 1) {
+            num = 0;
+        } else {
+            num++;
+        }
+        $nav.eq(num).trigger('mouseenter');
+        open = setTimeout(changeKv, 3000);
+    }
+
+    changeKv();
+    $nav.each(function (index) {
+        $(this).off('mouseenter').on('mouseenter', function () {
+            clearTimeout(open);
+
+            $(this).addClass('on').siblings().removeClass('on');
+            $('.scBigImg dd').eq(index).addClass('on').siblings().removeClass('on');
+            $('.scSmallImg').off('mouseleave').on('mouseleave', function () {
+                num = index;
+                setTimeout(function () {
+                    changeKv();
+                }, 3000)
+            })
+        });
+    });
+    $div.each(function () {
+        $(this).off('mouseenter').on('mouseenter', function () {
+            clearTimeout(open);
+        });
+    });
+
+    lazyload();
+    $(function () {
+
+        //点击榜单数据查询
+        $.ajax({
+            type: "get",
+            url: "/book/listClickRank",
+            data: {},
+            dataType: "json",
+            success: function (data) {
+                if (data.code == 0) {
+                    //var clickRankBooks = data.data;
+                    //var clickRankBooks = eval('(' + data.data + ')');
+                    var jsonStr = data.data;
+                    jsonStr = jsonStr.replace(/"\w+":\s*\d{16,}/g, function(longVal){
+                        let split = longVal.split(":");
+                        return split[0] + ':' + '"' + split[1].trim() + '"';
+                    });
+                    var clickRankBooks = eval('(' + jsonStr + ')');
+                    var clickRankBooksHtml = "";
+                    for (var i = 0; i < clickRankBooks.length; i++) {
+                        var clickRankBook = clickRankBooks[i];
+                        var classHtml = '';
+                        var imageHtml = '';
+                        if (i == 0) {
+                            classHtml = 'on';
+                            imageHtml = `<img src="${clickRankBook.pic_url}" alt="${clickRankBook.book_name}"/>`;
+                        }
+                        if (i < 3) {
+                            classHtml += ` num${i + 1}`;
+                        }
+                        clickRankBooksHtml += `
+                        <li class="${classHtml}">
+                            <div class="book_name">
+                                <i>${i + 1}</i><a class="name" href="/book/${clickRankBook.id}.html">${clickRankBook.book_name}</a>
+                            </div>
+                            <div class="book_intro">
+                                <div class="cover">
+                                    <a href="book/${clickRankBook.id}.html">${imageHtml}</a>
+                                </div>
+                                <a class="txt" href="/book/${clickRankBook.id}.html">${clickRankBook.book_desc}</a>
+                            </div>
+
+                        </li>`;
+                    }
+                    $("#clickRankBooks").html(clickRankBooksHtml);
+                } else {
+                    layer.alert(data.msg);
+                }
+
+            },
+            error: function () {
+                layer.alert('网络异常');
+            }
+        })
+        //新书榜单查询
+        $.ajax({
+            type: "get",
+            url: "/book/listNewRank",
+            data: {},
+            dataType: "json",
+            success: function (data) {
+                if (data.code == 0) {
+                    var jsonStr = data.data;
+                    jsonStr = jsonStr.replace(/"\w+":\s*\d{16,}/g, function(longVal){
+                        let split = longVal.split(":");
+                        return split[0] + ':' + '"' + split[1].trim() + '"';
+                    });
+                    var newRankBooks = eval('(' + jsonStr + ')');
+                    var newRankBooksHtml = '';
+                    for (var i = 0; i < newRankBooks.length; i++) {
+                        var newRankBook = newRankBooks[i];
+                        var classHtml = '';
+                        var imageHtml = '';
+                        if (i == 0) {
+                            classHtml = 'on';
+                            imageHtml = `<img src="${newRankBook.pic_url}" alt="${newRankBook.book_name}"/>`;
+                        }
+                        if (i < 3) {
+                            classHtml += ` num${i + 1}`;
+                        }
+                        newRankBooksHtml +=
+                        `
+                        <li class="${classHtml}">
+                            <div class="book_name">
+                                <i>${i + 1}</i><a class="name" href="/book/${newRankBook.id}.html">${newRankBook.book_name}</a>
+                            </div>
+                            <div class="book_intro">
+                                <div class="cover">
+                                    <a href="book/${newRankBook.id}.html">${imageHtml}</a>
+                                </div>
+                                <a class="txt" href="/book/${newRankBook.id}.html">${newRankBook.book_desc}</a>
+                            </div>
+
+                        </li>
+                        `;
+                    }
+                    $("#newRankBooks").html(newRankBooksHtml);
+                } else {
+                    layer.alert(data.msg);
+                }
+
+            },
+            error: function () {
+                layer.alert('网络异常');
+            }
+        })
+        //更新榜单查询
+        $.ajax({
+            type: "get",
+            url: "/book/listUpdateRank",
+            data: {},
+            dataType: "json",
+            success: function (data) {
+                if (data.code == 0) {
+                    //var updateRankBooks = data.data;
+                    var jsonStr = data.data;
+                    jsonStr = jsonStr.replace(/"\w+":\s*\d{16,}/g, function(longVal){
+                        let split = longVal.split(":");
+                        return split[0] + ':' + '"' + split[1].trim() + '"';
+                    });
+                    var updateRankBooks = eval('(' + jsonStr + ')');
+                    var updateRankBookHtml = "";
+                    var updateRankBookHtml2 = "";
+                    for (var i = 0; i < updateRankBooks.length; i++) {
+                        var updateRankBook = updateRankBooks[i];
+                        //console.log(updateRankBook);
+                        var classHtml = '';
+                        var imageHtml = '';
+                        if (i == 0) {
+                            classHtml = 'on';
+                            imageHtml = "<img\ src=\"" + updateRankBook.pic_url + "\" alt=\"" + updateRankBook.book_name + "\"/>";
+                            imageHtml = `<img src="${updateRankBook.pic_url}" alt="${updateRankBook.book_name}"/>`;
+                        }
+                        if (i < 3) {
+                            classHtml += ` num${i + 1}`;
+                        }
+                        if (i < 10) {
+                            updateRankBookHtml += `
+                            <li class="${classHtml}">
+                                <div class="book_name">
+                                    <i>${i + 1}</i><a class="name" href="/book/${updateRankBook.id}.html">${updateRankBook.book_name}</a>
+                                </div>
+                                <div class="book_intro">
+                                    <div class="cover">
+                                        <a href="book/${updateRankBook.id}.html">${imageHtml}</a>
+                                    </div>
+                                    <a class="txt" href="/book/${updateRankBook.id}.html">${updateRankBook.book_desc}</a>
+                                </div>
+                            </li>`;
+                        }
+                        updateRankBookHtml2 += `
+                        <tr>
+                            <td class="style"><a href="book/bookclass.html?c=${updateRankBook.cat_id}">[${updateRankBook.cat_name}]</a></td>
+                            <td class="name"><a href="/book/${updateRankBook.id}.html">${updateRankBook.book_name}</a></td>
+                            <td class="chapter">
+                                <a href="/book/${updateRankBook.id}.html">${updateRankBook.last_index_name}</a>
+                                <i class=""></i>
+                            </td>
+                            <td class="author"><a href="javascript:void(0)">${updateRankBook.author_name}</a></td>
+                            <td class="time">${layui.util.toDateString(updateRankBook.last_index_update_time,  "MM/dd HH:mm")}</td>
+                        </tr>
+                        `;
+                    }
+                    $("#updateRankBooks").html(updateRankBookHtml);
+                    $("#newRankBooks2").html(updateRankBookHtml2);
+                } else {
+                    layer.alert(data.msg);
+                }
+
+            }
+            ,
+            error: function () {
+                layer.alert('网络异常');
+            }
+        })
+        //友情链接查询
+        $.ajax({
+            type: "get",
+            url: "/friendLink/listIndexLink",
+            data: {},
+            dataType: "json",
+            success: function (data) {
+                if (data.code == 0) {
+                    var friendLinkList = data.data;
+                    var friendLinkHtml = "";
+                    for (var i = 0; i < friendLinkList.length; i++) {
+                        var friendLink = friendLinkList[i];
+                        friendLinkHtml += `<a target="_blank" href="${friendLink.link_url}">${friendLink.link_name}</a>`;
+                    }
+                    $("#friendLink").append(friendLinkHtml);
+                } else {
+                    layer.alert(data.msg);
+                }
+
+            },
+            error: function () {
+                layer.alert('网络异常');
+            }
+        })
+        $("#weekcommend h3").mouseover(function () {
+            $("#weekcommend h3").removeClass("on");
+            $(this).addClass("on");
+            if ($(this).attr("class").indexOf("fr") >= 0) {
+                $("#currentWeek").hide();
+                $("#currentPreWeek").show();
+            } else {
+                $("#currentPreWeek").hide();
+                $("#currentWeek").show();
+            }
+        });
+    });
+</script>
+</html>

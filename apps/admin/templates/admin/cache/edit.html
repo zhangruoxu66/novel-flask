@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>部门修改</title>
+    {% include 'admin/common/header.html' %}
+</head>
+<body>
+<form class="layui-form" action="" lay-filter="myForm">
+    <div class="mainBox">
+        <div class="main-container">
+            <div class="main-container">
+                {% if error %}
+                    <p style="color: red;">{{ error }}</p>
+                    <input type="hidden" name="expired" value="1">
+                {% else %}
+                    <input type="hidden" name="expired" value="0">
+                {% endif %}
+                <div class="layui-form-item">
+                    <label class="layui-form-label">键（key）</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="key" lay-verify="required|key" lay-reqtext="请输入键（key）" placeholder="请输入" class="layui-input layui-disabled" value="{{ data.key }}">
+                        <tip>key作为唯一标识，请输入全英文和数字，且不能重复</tip>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">值（value）</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="value" lay-verify="required" lay-reqtext="请输入值（value）" placeholder="请输入" class="layui-input" value="{{ data.value }}">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">过期时间</label>
+                    <div class="layui-input-block">
+                        <input type="number" name="expire" lay-verify="required" lay-reqtext="请输入过期时间" placeholder="请输入" class="layui-input" value="{{ data.expire }}">
+                        <tip>过期时间默认-1，永不过期，单位（秒）</tip>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="bottom">
+        <div class="button-container">
+            <button type="submit" class="pear-btn pear-btn-primary pear-btn-sm" lay-submit=""
+                    lay-filter="cache-update">
+                <i class="layui-icon layui-icon-ok"></i>
+                提交
+            </button>
+            <button type="reset" class="pear-btn pear-btn-sm">
+                <i class="layui-icon layui-icon-refresh"></i>
+                重置
+            </button>
+        </div>
+    </div>
+</form>
+{% include 'admin/common/footer.html' %}
+<script>
+  layui.use(['form', 'jquery'], function () {
+    let form = layui.form
+    let $ = layui.jquery
+
+    //form.val("myForm", {{ data }});
+
+    form.verify({
+            //我们既支持上述函数式的方式，也支持下述数组的形式
+            //数组的两个值分别代表：[正则匹配、匹配不符时的提示文字]
+            key: [
+                /^[0-9a-zA-Z\:]+$/
+                ,'请填写正确的键（key）'
+            ]
+        });
+
+    form.on('submit(cache-update)', function (data) {
+      $.ajax({
+        url: '/admin/cache/update',
+        data: JSON.stringify(data.field),
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'put',
+        success: function (result) {
+          if (result.success) {
+            layer.msg(result.msg, { icon: 1, time: 1000 }, function () {
+              parent.layer.close(parent.layer.getFrameIndex(window.name))//关闭当前页
+              parent.layui.table.reload('cache-table')
+              //parent.render()
+            })
+          } else {
+            layer.msg(result.msg, { icon: 2, time: 1000 })
+          }
+        }
+      })
+      return false
+    })
+  })
+</script>
+<script>
+</script>
+</body>
+</html>

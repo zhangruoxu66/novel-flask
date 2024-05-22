@@ -1,0 +1,105 @@
+<!DOCTYPE html
+    PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <title>修改昵称_{{ website.name }}</title>
+    <link rel="stylesheet" href="/static/css/user.css" />
+    {% include 'common/header.html' %}
+</head>
+
+<body class="">
+
+    {% include 'common/top.html' %}
+    <div class="main box_center cf">
+        <div class="userBox cf">
+            {% include 'user/common.html' %}
+            <div class="my_r">
+                <div class="my_info cf">
+                    <div class="my_info_txt">
+                        <ul class="mytab_list">
+                            <li><i class="tit">我的昵称</i><input name="txtNiceName" type="text" value="15171695474"
+                                    maxlength="20" id="txtNiceName" class="s_input" placeholder="" /></li>
+                            <li><i class="tit">&nbsp;</i>用户名只能包括汉字、英文字母、数字和下划线</li>
+                            <li><i class="tit">&nbsp;</i><input type="button" onclick="updateName()" name="btn"
+                                    value="修改" id="btn" class="s_btn btn_red" /></li>
+                            <li><i class="tit">&nbsp;</i><span id="LabErr"></span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include 'common/footer.html' %}
+    {% include 'common/js.html' %}
+    <script type="text/javascript">
+        // 查询用户信息
+        $.ajax({
+            type: "get",
+            url: "/user/userInfo",
+            data: {},
+            dataType: "json",
+            success: function (data) {
+                if (data.code == 0) {
+                    if (data.data.nick_name) {
+                        $("#txtNiceName").val(data.data.nick_name);
+                    } else {
+                        $("#txtNiceName").val(data.data.username);
+                    }
+
+                } else if (data.code == 1001) {
+                    //未登录
+                    location.href = '/user/login.html?originUrl=' + decodeURIComponent(location.href);
+
+                } else {
+                    layer.alert(data.msg);
+                }
+
+            },
+            error: function () {
+                layer.alert('网络异常');
+            }
+        })
+
+        function updateName() {
+            var nickname = $("#txtNiceName").val();
+            if (nickname.isBlank()) {
+                $("#LabErr").html("昵称不能为空！");
+                return;
+            }
+            if (!nickname.isNickName()) {
+                $("#LabErr").html("昵称格式不正确！");
+                return;
+            }
+            $.ajax({
+                type: "POST",
+                url: "/user/updateUserInfo",
+                data: JSON.stringify({ 'nickName': nickname }),
+                dataType: "json",
+                success: function (data) {
+                    if (data.code == 0) {
+
+                        $.cookie('access_token_cookie', data.access_token, { path: '/' });
+                        $.cookie('csrf_access_token', data.csrf_token, { path: '/' });
+                        window.location.href = '/user/setup.html';
+
+                    } else if (data.code == 1001) {
+                        //未登录
+                        location.href = '/user/login.html?originUrl=' + decodeURIComponent(location.href);
+
+                    } else {
+                        $("#LabErr").html(data.msg);
+                    }
+
+                },
+                error: function () {
+                    layer.alert('网络异常');
+                }
+            })
+        }
+    </script>
+
+</body>
+
+</html>

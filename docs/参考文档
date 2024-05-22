@@ -1,0 +1,224 @@
+1.flask使用python第三方插件，根据数据库表快速生成models模型
+https://blog.csdn.net/weixin_42008966/article/details/129957742（√）
+https://www.jianshu.com/p/63bbb7e132ce
+https://blog.csdn.net/qq_21148843/article/details/107454273
+https://www.cnblogs.com/xussi/p/10186547.html
+https://www.bbsmax.com/A/l1dy7pNVJe/（√）
+
+2.图形验证码
+https://blog.csdn.net/weixin_60677608/article/details/127859341
+https://www.cnblogs.com/littlefivebolg/p/9669781.html
+https://jiuaidu.com/jianzhan/666230/
+https://blog.csdn.net/qq_44657868/article/details/108988019
+https://blog.csdn.net/qq_33962481/article/details/114409873
+
+3.关于找不到 db init 命令
+https://baijiahao.baidu.com/s?id=1709740427317070356&wfr=spider&for=pc
+https://blog.csdn.net/XRTONY/article/details/114776603（√）
+
+4.整合Redis
+https://blog.csdn.net/hihell/article/details/128818161
+
+5.分库分表
+https://blog.csdn.net/weixin_47906106/article/details/124477277
+https://blog.csdn.net/weixin_41496385/article/details/80741575
+
+6.json序列化
+https://blog.csdn.net/qianpou/article/details/125471384
+https://blog.csdn.net/qianpou/article/details/125471384
+
+7.flask- marshmallow 序列化与反序列化
+https://juejin.cn/post/6971806887427702815/
+
+8.Python在子类中调用父类方法
+https://blog.csdn.net/ljh18885466426/article/details/119492035
+
+9.随机查询
+https://www.yii666.com/blog/146496.html
+https://www.dovov.com/sqlalchemy-9.html
+
+10.JWT
+https://www.cnblogs.com/gdbd/p/17367239.html
+https://www.cnblogs.com/yoyoketang/p/16646094.html
+https://www.5axxw.com/questions/content/8gtvf5
+https://www.jianshu.com/p/10d0da01244c
+https://www.cnblogs.com/doomqy/p/14884070.html
+http://www.manongjc.com/detail/20-hnbyvssflqnvsnm.html
+https://flask-jwt-extended.readthedocs.io/en/stable/api/
+https://www.cnblogs.com/Liu928011/archive/2021/07/17/15020581.html
+https://blog.csdn.net/djstavaV/article/details/112261875
+https://blog.csdn.net/qq_42573343/article/details/107126082
+https://www.jianshu.com/p/10d0da01244c
+https://blog.csdn.net/weixin_43249535/article/details/122393006
+https://www.cnblogs.com/Liu928011/p/15020581.html
+
+11.前端处理16位以上数字
+https://blog.csdn.net/Auntvt/article/details/105701460
+
+12.后端判断是否为Ajax请求
+https://www.jb51.cc/python/186453.html
+https://www.javacui.com/Theory/429.html
+
+13.datetime
+https://blog.csdn.net/Son_Of_Gods/article/details/43941699
+http://news.sangniao.com/p/1442090194
+
+14.统计字数
+https://www.codenong.com/10677020/
+https://blog.csdn.net/weixin_51327281/article/details/127700781
+https://blog.csdn.net/m0_60657960/article/details/129518347
+https://www.cnblogs.com/dissipate/p/13733178.html
+https://blog.csdn.net/weixin_34366546/article/details/94152091
+https://blog.csdn.net/m0_37149062/article/details/107208750
+https://blog.csdn.net/weixin_36488653/article/details/117744930
+
+
+15.模块名冲突
+https://blog.csdn.net/qq_45779334/article/details/108180724
+
+16.雪花算法
+https://blog.csdn.net/weixin_43209051/article/details/103309844
+https://www.cnblogs.com/oklizz/p/11865750.html
+https://blog.csdn.net/ailinyingai/article/details/103969903
+
+17.ERROR: Failed building wheel for backports.zoneinfo
+https://blog.csdn.net/qq_36815042/article/details/129310026
+
+18.python3.9安装backports.zoneinfo失败
+http://t.csdn.cn/TWsjh
+
+19.Flask-SQLAlchemy 左外连接过滤查询
+https://it.cha138.com/zhidao/show-7735110.html
+
+20.layui日期组件
+http://www.shagua.wiki/project/3?p=97
+https://blog.csdn.net/OpenSource_/article/details/119645707
+
+21.layui时间日期控件laydate设置默认值，并且结束时间大于开始时间
+https://blog.csdn.net/caicai1171523597/article/details/103870901
+
+22.layui表单换行
+https://ipkd.cn/webs_2499.html
+
+23.js获取时分秒
+https://www.cnblogs.com/wangfx/p/15323319.html
+
+24.python属性复制
+https://www.cnpython.com/qa/94719
+def blindcopy(objfrom, objto):
+    for n, v in inspect.getmembers(objfrom):
+        setattr(objto, n, v);
+def copysome(objfrom, objto, names):
+    for n in names:
+        if hasattr(objfrom, n):
+            v = getattr(objfrom, n)
+            setattr(objto, n, v);
+
+25.python列表分组
+https://blog.csdn.net/xiaoc100200/article/details/111402566
+https://blog.csdn.net/qq_33316931/article/details/129094489
+https://www.coder.work/article/3131764
+
+26.在JINJA2模板中获取列表的长度
+https://www.dovov.com/jinja2.html
+
+27.SQLAlchemy中时间和日期格式的查询
+https://blog.csdn.net/qq_37289115/article/details/107244428
+https://blog.csdn.net/WJ844908240/article/details/106073176/
+
+28.layui表格下拉框tableSelect
+https://layui.org.cn/fly/extend/tableSelect/index.html
+https://blog.csdn.net/qq_36636312/article/details/109115981
+https://blog.csdn.net/qq_36636312/article/details/114978123
+https://lolicode.gitee.io/layui_component_tableselect/#:~:
+text=%7D%20%7D%29%20%2F%2F%E9%BB%98%E8%AE%A4%E5%80%BC,%E5%8F%AA%E9%9C%80%E8%A6%81%E5%9C%A8%E8%A7%A6%E5%8F%91
+input%E4%B8%8A%E6%B7%BB%E5%8A%A0%20ts-selected%3D%221%2C2%2C3%22%20%E5%B1%9E%E6%80%A7%E5%8D%B3%E5%8F%AF%20%E5%80%BC%E9%9C%80%E4%B8%8
+EcheckedKey%E5%AF%B9%E5%BA%94
+
+29.多线程使用flask上下文
+https://www.51cto.com/article/744843.html
+http://www.pythondoc.com/flask-celery/first.html
+https://www.cnblogs.com/chaojiyingxiong/p/15058833.html
+
+30.redis单机锁
+https://www.cnblogs.com/goldsunshine/p/15463741.html
+
+31.jmeter压测
+https://blog.csdn.net/weixin_45189665/article/details/125278218
+
+32.解决JS动态生成的页面元素jQuery Click无效的方法
+https://baijiahao.baidu.com/s?id=1700878302382260821&wfr=spider&for=pc
+
+33.ajaxSetup设置全局请求
+https://blog.csdn.net/chanji4669/article/details/100956474
+https://blog.csdn.net/memedadexixaofeifei/article/details/87430694
+
+34.flask集成支付宝
+https://www.cnblogs.com/liqiongming/p/14581255.html
+https://blog.csdn.net/m0_70015578/article/details/126630637
+https://gitee.com/lybbn/django-vue-lyadmin/blob/master/backend/utils/alipay.py
+https://github.com/fzlee/alipay/blob/master/docs/init.md
+http://www.xbhp.cn/news/18826.html
+
+35.使用了gevent，在debug模式下启动报错
+https://blog.csdn.net/weixin_44436611/article/details/122877516
+
+36.复杂对象json序列化
+https://www.jianshu.com/p/a1b2b2a433da
+https://zhuanlan.zhihu.com/p/388892563
+https://it.cha138.com/wen4/show-4028675.html
+https://www.cnblogs.com/wang-daydayup/p/13627865.html
+
+37.layui 中解决select onchange事件无效
+https://blog.csdn.net/lk419121010221/article/details/125057966
+
+38.layui表格等组件处理请求头、响应头的问题
+https://blog.csdn.net/the_love/article/details/106110320
+https://blog.csdn.net/weixin_43233914/article/details/86606613#comments_12202824
+https://www.wisdomelon.com/DTreeHelper/
+
+39.sqlalchemy case when分组查询统计
+https://blog.csdn.net/qq_38923792/article/details/119576798
+https://docs.sqlalchemy.org/en/20/core/expression_api.html
+
+40.MySQL查询分析器Explain（explain）使用
+https://blog.csdn.net/qq_39505065/article/details/89468840
+
+41.Flask SQLalchemy result 查询结果如何转换成dict
+https://www.cnblogs.com/Jacob-yang/p/14760016.html
+
+42.Flask-SQLAlchemy检查表中是否存在行
+https://qa.1r1g.com/sf/ask/2305693281/
+exists = db.session.query(User.id).filter_by(name='davidism').scalar() is not None
+exists = db.session.query(
+    db.session.query(User).filter_by(name='John Smith').exists()
+).scalar()
+
+43.MySql 不存在则插入，存在则更新或忽略
+https://blog.csdn.net/qq_40301202/article/details/124136242
+https://www.ngui.cc/el/1376580.html?action=onClick
+https://www.cnblogs.com/hn_lijia/p/12372867.html
+
+44.Mysql中的sum函数为null时的解决办法
+https://www.likecs.com/show-307834123.html
+
+45.python 连续值分组统计
+https://blog.csdn.net/albg_boy/article/details/108216555
+
+46.flask生成api接口文档相关
+https://pypi.org/project/Flask-Pydantic/
+http://mixoo.cn/2019/03/13/flask-graphql-first/
+https://blog.csdn.net/z497896143/article/details/81073044
+https://zhuanlan.zhihu.com/p/529381856?utm_id=0
+https://pypi.org/project/flask-siwadoc/
+
+47.python类使用泛型
+https://zhuanlan.zhihu.com/p/486772116?utm_id=0
+
+48.PyCharm配置/更换镜像源及安装第三方库/设置清华镜像源
+https://blog.csdn.net/weixin_55629186/article/details/132549074
+
+49.jquery怎样修改onclick属性值
+https://bbs.csdn.net/topics/330253583
+$(“#some_element”).unbind('click').removeAttr('onclick').click(function(){ //new operation });
+

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>评论详情</title>
+    {% include 'admin/common/header.html' %}
+</head>
+<body>
+<form class="layui-form" action="" lay-filter="myForm">
+    <div class="mainBox">
+        <div class="main-container">
+            <div class="main-container">
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">小说ID：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="book_id" class="layui-input layui-disabled">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">小说名：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="book_name" class="layui-input layui-disabled">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">作者笔名：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="author_name" class="layui-input layui-disabled">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">用户id：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="user_id" class="layui-input layui-disabled">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">用户名：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="username" class="layui-input layui-disabled">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">用户昵称：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="nick_name" class="layui-input layui-disabled">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">评价内容：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="comment_content" class="layui-input layui-disabled">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">回复数量：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="reply_count" class="layui-input layui-disabled">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">审核状态：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="audit_status_name" class="layui-input layui-disabled">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">评价时间：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="create_time_name" class="layui-input layui-disabled">
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</form>
+{% include 'admin/common/footer.html' %}
+<script>
+  layui.use(['form', 'jquery'], function () {
+    let form = layui.form
+    let $ = layui.jquery
+
+    let id = getUrlParam('id');
+    $.ajax({
+        url: '/admin/book_comment/get_detail',
+        type: 'get',
+        dataType: 'json',
+        data: {
+            id: id
+        },
+        success: function (result) {
+            if (result.code == 0) {
+                let data = result.data
+                form.val("myForm", data);
+                $('#pic_url').attr('src', data.pic_url);
+            } else {
+                alert('加载小说详情失败')
+            }
+        },
+        error: function () {
+            layer.msg('网络错误', { icon: 2, time: 1000 })
+        },
+    });
+
+  })
+</script>
+<script>
+</script>
+</body>
+</html>

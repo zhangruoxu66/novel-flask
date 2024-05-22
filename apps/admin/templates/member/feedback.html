@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>会员反馈</title>
+    {% include 'admin/common/header.html' %}
+</head>
+<body class="pear-container">
+
+<div class="layui-card">
+    <div class="layui-card-body">
+        <table id="feedback-table" lay-filter="feedback-table"></table>
+    </div>
+</div>
+</body>
+
+<script type="text/html" id="create-time">
+    {{ '  {{layui.util.toDateString(d.create_time,  "yyyy-MM-dd HH:mm:ss")}' |safe }}}
+</script>
+{% include 'admin/common/footer.html' %}
+<script>
+  layui.use(['table', 'form', 'jquery', 'popup', 'common'], function () {
+    let table = layui.table
+    let form = layui.form
+    let $ = layui.jquery
+    let popup = layui.popup
+
+    let MODULE_PATH = '/admin/member_feedback/'
+
+    loadDicts();
+
+    let cols = [
+      [
+        { title: '反馈用户', field: 'username', align: 'center' },
+        { title: '反馈内容', field: 'content', align: 'center' },
+        { title: '反馈时间', field: 'create_time', align: 'center', templet: '#create-time' },
+      ]
+    ]
+
+    table.render({
+      elem: '#feedback-table',
+      url: MODULE_PATH + 'data',
+      page: true,
+      cols: cols,
+      skin: 'line',
+      toolbar: '#role-toolbar',
+      defaultToolbar: [{
+        layEvent: 'refresh',
+        icon: 'layui-icon-refresh',
+      }, 'filter', 'print', 'exports']
+    })
+
+    table.on('toolbar(feedback-table)', function (obj) {
+      if (obj.event === 'refresh') {
+        window.refresh()
+      }
+    })
+
+    window.refresh = function () {
+      table.reload('feedback-table')
+    }
+  })
+
+</script>
+</html>

@@ -1,0 +1,151 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>个人中心_{{ website.name }}</title>
+    <link rel="stylesheet" href="/static/css/user.css"/>
+    {% include 'common/header.html' %}
+</head>
+<body class="">
+
+{% include 'common/top.html' %}
+<div class="main box_center cf">
+    <div class="userBox cf">
+        {% include 'user/common.html' %}
+        <div class="my_r">
+            <div class="my_info cf">
+                <img id="imgLogo" class="user_big_head" src="/static/images/man.png" />
+                <div class="my_info_txt">
+                    <p class="my_name" id="my_name">
+                        </p>
+                    <ul class="my_list">
+                        <li class="my_gold"><i>账户余额：</i><em class="red" id="accountBalance">0</em>屋币<!--<em class="red">+</em><em class="red">0</em>代金券--><a href="/alipay/index.html" class="btn_link">立即充值</a></li>
+                        <li class="my_baonian"></li>
+
+                    </ul>
+                </div>
+            </div>
+            <div class="my_bookshelf">
+                <div class="title cf">
+                    <h4 class="fl">
+                        我的书架</h4>
+                    <a href="/user/favorites.html" class="fr">全部收藏 &gt;</a>
+                </div>
+                <div class="updateTable">
+                    <table cellpadding="0" cellspacing="0">
+                        <thead>
+                        <tr>
+                            <th class="style">
+                                类别
+                            </th>
+                            <th class="name">
+                                书名
+                            </th>
+                            <th class="chapter">
+                                最新章节
+                            </th>
+                            <th class="time">
+                                更新时间
+                            </th>
+                            <th class="goread">
+                                书签
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody id="bookShelfList">
+
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'common/footer.html' %}
+{% include 'common/js.html' %}
+<script type="text/javascript" src="/static/javascript/user.js"></script>
+<script type="text/javascript">
+    //查询用户信息
+    $.ajax({
+        type: "get",
+        url: "/user/userInfo",
+        data: {},
+        dataType: "json",
+        success: function (data) {
+            if (data.code == 0) {
+                if(data.data.user_photo){
+                    $("#imgLogo").attr("src",data.data.user_photo);
+                }
+                if(data.data.nick_name){
+                    $("#my_name").html(data.data.nick_name);
+                }else{
+                    $("#my_name").html(data.data.username);
+                }
+
+                $("#accountBalance").html(data.data.account_balance);
+
+            } else if (data.code == 1001) {
+                //未登录
+                location.href = '/user/login.html?originUrl=' + decodeURIComponent(location.href);
+
+            } else {
+                layer.alert(data.msg);
+            }
+
+        },
+        error: function () {
+            layer.alert('网络异常');
+        }
+    })
+    //查询书架列表
+    $.ajax({
+        type: "get",
+        url: "/user/listBookShelfByPage",
+        data: {'limit':2},
+        dataType: "json",
+        success: function (data) {
+            if (data.code == 0) {
+                var bookShelfList = data.data;
+                if (bookShelfList.length > 0) {
+                    var bookShelfListHtml = "";
+                    for (var i = 0; i < bookShelfList.length; i++) {
+                        var book = bookShelfList[i];
+                        bookShelfListHtml += `
+                                            <tr class="book_list" vals="291">
+                                                <td class="style bookclass">
+                                                    <a href="/book/bookclass.html?c=${book.cat_id}">[${book.cat_name}]</a>
+                                                </td>
+                                                <td class="name">
+                                                    <a href="/book/${book.book_id}.html">${book.book_name}</a>
+                                                </td>
+                                                <td class="chapter" valsc="291|2037554|1">
+                                                    <a href="/book/${book.book_id}/${book.last_index_id}.html">${book.last_index_name}</a>
+                                                </td>
+                                                <td class="time">
+                                                    ${layui.util.toDateString(book.last_index_update_time, "MM/dd HH:mm")}
+                                                </td>
+                                                <td class="goread">
+                                                    <a href="/book/${book.book_id}/${book.pre_content_id}.html">继续阅读</a>
+                                                </td>
+                                            </tr>
+                                            `;
+                    }
+                    $("#bookShelfList").html(bookShelfListHtml);
+                }
+
+            } else {
+                layer.alert(data.msg);
+            }
+
+        },
+        error: function () {
+            layer.alert('网络异常');
+        }
+    })
+
+</script>
+</body>
+</html>

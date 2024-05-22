@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>会员管理</title>
+    {% include 'admin/common/header.html' %}
+</head>
+<body class="pear-container">
+
+{# 查询表单 #}
+<div class="layui-card">
+    <div class="layui-card-body">
+        <form class="layui-form" action="" lay-filter="user-query-form">
+            <div class="layui-form-item">
+                <div class="layui-inline">
+                    <label class="layui-form-label">手机号</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="username" placeholder="" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-inline">
+                    <label class="layui-form-label">昵称</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="nick_name" placeholder="" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-inline">
+                    <label class="layui-form-label">性别</label>
+                    <div class="layui-input-inline">
+                        <select id="user-sex" name="user_sex" lay-search class="dict-select" dict-key="SEX">
+                            <option value="">请选择性别</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="layui-inline">
+                    <label class="layui-form-label">是否为作家</label>
+                    <div class="layui-input-inline">
+                        <select id="is-author" name="is_author" lay-search class="dict-select" dict-key="YES_OR_NO">
+                        </select>
+                    </div>
+                </div>
+
+                <div class="layui-inline">
+                    <label class="layui-form-label">注册时间起</label>
+                    <div class="layui-input-inline">
+                         <input class="layui-input" id="start_date" name="start_date" type="text" placeholder="yyyy-MM-dd HH:mm:ss">
+                    </div>
+                </div>
+                <div class="layui-inline">
+                    <label class="layui-form-label">注册时间止</label>
+                    <div class="layui-input-inline">
+                         <input class="layui-input" id="end_date" name="end_date" type="text" placeholder="yyyy-MM-dd HH:mm:ss">
+                    </div>
+                </div>
+
+                <!--<label class="layui-form-label">注册时间起</label>
+                <div class="layui-input-inline">
+                     <input class="layui-input" id="start_date" name="start_date" type="text" placeholder="yyyy-MM-dd HH:mm:ss">
+                </div>
+                <label class="layui-form-label">注册时间止</label>
+                <div class="layui-input-inline">
+                     <input class="layui-input" id="end_date" name="end_date" type="text" placeholder="yyyy">
+                </div>-->
+
+                <button class="pear-btn pear-btn-md pear-btn-primary" lay-submit lay-filter="user-query">
+                    <i class="layui-icon layui-icon-search"></i>
+                    查询
+                </button>
+                <button type="reset" class="pear-btn pear-btn-md">
+                    <i class="layui-icon layui-icon-refresh"></i>
+                    重置
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="layui-card">
+    <div class="layui-card-body">
+        <table id="user-table" lay-filter="user-table"></table>
+    </div>
+</div>
+</body>
+
+<script type="text/html" id="create-time">
+    {{ '  {{layui.util.toDateString(d.create_time,  "yyyy-MM-dd HH:mm:ss")}' |safe }}}
+</script>
+{% include 'admin/common/footer.html' %}
+<script>
+  layui.use(['table', 'form', 'jquery', 'popup', 'common', 'laydate'], function () {
+    let table = layui.table
+    let form = layui.form
+    let $ = layui.jquery
+    let popup = layui.popup
+    let laydate = layui.laydate;
+
+    var start = laydate.render({
+        elem: '#start_date'
+        ,max:0//最大值为当前日期
+        ,trigger: 'click'
+        ,value: getRecentDay(-1)//默认值1天前（昨天）
+        ,type: 'datetime'
+         ,done: function(value, date){
+            //console.log(date);
+            if(value && (value>$("#end_date").val())){
+                  /*开始时间大于结束时间时，清空结束时间*/
+                  $("#end_date").val("");
+            }
+     
+            end.config.min ={
+              year:date.year,
+              month:date.month-1,
+              date: date.date,
+              hours: date.hours,
+              seconds: date.seconds,
+              minutes: date.minutes,
+            };
+         }
+      });
+    var end = laydate.render({
+        elem: '#end_date'
+        ,max : 0//最大值为当前日期
+        ,trigger: 'click'
+        ,value: getRecentDay(0)//默认值今天
+        ,type: 'datetime'
+        ,done: function(value, date){
+            //console.log(date);
+            start.config.max={
+              year:date.year,
+              month:date.month-1,
+              date: date.date,
+              hours: date.hours,
+              seconds: date.seconds,
+              minutes: date.minutes,
+            }
+         }
+      });
+
+    /**获取近N天*/
+  function getRecentDay(day){
+        var today = new Date();
+        console.log(today);
+        var targetday_milliseconds=today.getTime() + 1000*60*60*24*day;
+        today.setTime(targetday_milliseconds);
+        var tYear = today.getFullYear();
+        var tMonth = today.getMonth();
+        var tDate = today.getDate();
+        var tHours = today.getHours();
+        var tMinutes = today.getMinutes();
+        var tSeconds = today.getSeconds();
+        tMonth = doHandleMonth(tMonth + 1);
+        tDate = doHandleMonth(tDate);
+        tHours = doHandleMonth(tHours);
+        tMinutes = doHandleMonth(tMinutes);
+        tSeconds = doHandleMonth(tSeconds);
+        return tYear + "-" + tMonth + "-" + tDate + " " + tHours + ":" + tMinutes + ":" + tSeconds;
+    }
+    function doHandleMonth(month){
+        var m = month;
+        if(month.toString().length == 1){
+            m = "0" + month;
+        }
+        return m;
+    }
+
+    let MODULE_PATH = '/admin/member/'
+
+    loadDicts();
+
+     /**
+      *@number:需要格式化的数字
+      *@decimals:小数点位数
+      *@separator:千分位分割符
+     **/
+     function formatNumber(number, decimals, separator){
+        if(isNaN(Number(number))) {
+            return "0"
+        }
+        let _separator = separator||",";
+        let _decimals = decimals||2;
+        let numberStr = number.toFixed(_decimals);
+        let splitArray = numberStr.split(".");
+        let left = splitArray[0];
+        let right = splitArray[1];
+        let array = left.split('').reverse();
+        let array2 = [];
+        for (let i = 0; i < array.length; i++){
+            if(i>0&&i%3===0) {
+                array2.push(_separator);
+            }
+            array2.push(array[i]);
+        }
+        return array2.reverse().join("") + "." + right;
+     }
+     //let number = 20200421.56787;
+     //formatNumber(number);
+     //console .log(formatNumber(number,3,null))//20,200,421.57
+
+    let cols = [
+      [
+        { title: '序号', type: 'numbers', align: 'center' },
+        { title: '手机', field: 'username', align: 'center' },
+        { title: '昵称', field: 'nick_name', align: 'center' },
+        { title: '性别', field: 'user_sex', align: 'center', width: 100 },
+        { title: '账户余额', field: 'account_balance', align: 'center', templet: function (data) { return '￥' + formatNumber(data.account_balance/100); } },
+        { title: '是否为作家', field: 'is_author', align: 'center' },
+        { title: '注册时间', field: 'create_time', align: 'center' },
+      ]
+    ]
+
+    table.render({
+      elem: '#user-table',
+      url: MODULE_PATH + 'data',
+      page: true,
+      cols: cols,
+      skin: 'line',
+      toolbar: '#role-toolbar',
+      defaultToolbar: [{
+        layEvent: 'refresh',
+        icon: 'layui-icon-refresh',
+      }, 'filter', 'print', 'exports']
+    })
+
+    table.on('toolbar(user-table)', function (obj) {
+      if (obj.event === 'refresh') {
+        window.refresh()
+      }
+    })
+
+    form.on('submit(user-query)', function (data) {
+      table.reload('user-table', { where: data.field })
+      return false
+    })
+
+    window.refresh = function () {
+      table.reload('user-table')
+    }
+  })
+
+</script>
+</html>

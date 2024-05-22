@@ -1,0 +1,306 @@
+1.flask使用python第三方插件，根据数据库表快速生成models模型：
+
+pip install sqlacodegen
+首先执行上面的命令安装插件
+然后执行以下命令，就会将指定数据库内的表全部映射到一个models文件当中
+sqlacodegen mysql+pymysql://user:passwd@ip:3306/database?charset=utf8 --outfile=models.py
+sqlacodegen mysql+pymysql://root:111111@127.0.0.1:3306/novel_flask?charset=utf8 --outfile=models.py
+
+或者：
+pip install flask-sqlacodegen
+flask-sqlacodegen mysql+pymysql://root:111111@127.0.0.1:3306/novel_flask?charset=utf8 --outfile "app/models.py"  --flask
+
+flask-sqlacodegen "mysql+pymysql://root:111111@127.0.0.1:3306/novel_flask" --flask --tables author
+flask-sqlacodegen "mysql+pymysql://root:111111@127.0.0.1:3306/novel_flask?charset=utf8" --flask  --outfile "models.py"
+
+注意：
+（1）不要安装sqlacodegen，而要安装flask-sqlacodegen
+（2）最新的 flask-sqlacodegen 1.1.8有些问题，要使用1.1.6
+
+sqlacodegen mysql+pymysql://root:111111@127.0.0.1:3306/novel_flask?charset=utf8 --outfile=models.py
+flask-sqlacodegen mysql+pymysql://root:111111@127.0.0.1:3306/novel_flask?charset=utf8 --outfile=models.py --flask
+
+这里有个大坑
+会报错sqlalchemy.engine.base.Engine...xxxxxx，后面大概是说，schema对象是个字符串str，而不是engine类的对象
+解决及发现过程：
+（1）先下载了flask-sqlacodegen 1.1.16版本，发现不行，报上述错误
+（2）在1的基础上，下载了sqlacodegen 2.3.0.post1，执行sqlacodegen mysql+pymysql://root:111111@127.0.0.1:3306/novel_flask?charset=utf8 --outfile=models.py
+成功生成models，虽然不是用的flask-sqlalchemy的db对象，但好歹没报错
+（3）执行flask-sqlacodegen mysql+pymysql://root:111111@127.0.0.1:3306/novel_flask?charset=utf8 --outfile=models.py --flask
+包没报错，我忘了，但是这里不重要，重要的是下面的流程
+（4）卸载掉sqlacodegen 2.3.0.post1，执行flask-sqlacodegen mysql+pymysql://root:111111@127.0.0.1:3306/novel_flask?charset=utf8 --outfile=models.py --flask
+报错ModuleNotFoundError: No module named 'sqlacodegen.main'
+（5）第4步的问题原因是，环境乱了，所以把flask-sqlacodegen卸载掉重新安装即可
+（6）执行flask-sqlacodegen mysql+pymysql://root:111111@127.0.0.1:3306/novel_flask?charset=utf8 --outfile=models.py
+成功生成models，但是和sqlacodegen生成的一样，原因是没加 --flask，加上之后即可正常生成，完整命令：
+flask-sqlacodegen mysql+pymysql://root:111111@127.0.0.1:3306/novel_flask?charset=utf8 --outfile=models.py --flask
+
+（7）事后复盘，就会发现，直接安装flask-sqlacodegen，可能会检查其依赖库SQLAlchemy，但是不会检查SQLAlchemy的版本，
+而由于我们在使用flask-sqlacodegen就把项目搭建完成了，除了flask-sqlacodegen，其他所有包都安装了，其中也包括SQLAlchemy和依赖它的
+Flask-SQLAlchemy，由于Flask-SQLAlchemy是直接安装最新版的，导致自动安装的其依赖的SQLAlchemy也是最新的（也可能虽不是最新的，但也是
+一个教改哦版本），当然也可能是在pip里面手动升级了SQLAlchemy的缘故，导致其版本过高（最高）。最新版的SQLAlchemy的schema对象是个
+Engine类的对象，而flask-sqlacodegen/sqlacodegen需要的schema对象是字符串，故而会导致报错
+
+而安装sqlacodegen的时候，会检查SQLAlchemy的版本，如果过高/与sqlacodegen不匹配，则会卸载/覆盖掉原来的高版本SQLAlchemy，
+并重新安装与之匹配的低版本SQLAlchemy，sqlacodegen 2.3.0.post1对应的SQLAlchemy版本是SQLAlchemy==1.4.48
+
+因此，需要降低SQLAlchemy的版本至1.4.48
+
+（8）时候复盘发现，flask-sqlacodegen 1.1.18和1.1.16生成的代码行数不一样，1.1.18要多一些，
+这是因为1.1.18生成的代码格式较乱，会比1.1.16多出一些空行，而1.1.16生成的代码较为整齐，
+因此，建议使用1.1.16版本
+
+综上所述：
+要想使用flask-sqlacodegen正常生成代码，要满足以下两个条件：
+（1）SQLAlchemy==1.4.48
+（2）flask-sqlacodegen==1.1.6
+
+
+2.th模板引擎引入css、js等路径替换为jinja2写法：
+
+href="..(.*?)."      -》      href="$1"
+="../layui(.*?)."   ->  ="{{ url_for('static',filename='layui$1') }}"
+="../js(.*?)."  -> ="{{ url_for('static',filename='js$1') }}"
+__tablename__(.*)
+__bind_key__ = 'ds1'\n    __tablename__$1
+
+3.关于找不到db init命令：
+
+需要 set FLASK_APP=manager.py
+因为flask不知道你的app在哪，但是默认情况下（启动脚本名为app.py，且不存在名字为app的package的情况下），
+会指向项目根目录下的app.py，如果存在以下情况，则需要使用命令行指定FLASK_APP指向的脚本文件：
+（1）项目根目录下直接建立应用，即static、templates等目录，及views/blueprints等包，以及启动脚本
+直接放在根目录下，且项目根目录下不存在名为app的python包（package），这个时候如果启动类名字不是app.py，
+咋需要手动指定FLASK_APP
+（2）启动脚本虽在根目录下，名字也为app.py，但是项目根目录下存在名为app的包
+
+
+4.雪花算法在多进程（及多线程）的情况下，存在大量重复问题：
+
+多线程下，虽然有PIL锁存在，能保证同时只有一个线程执行，但是雪花算法生成唯一id的操作并非原子操作，所以需要加一个线程锁；
+
+而多进程的情况下，线程锁直接没有任何作用，进程锁也并不能像线程锁那样直接一个with lock就行，
+而是需要先将生成雪花算法唯一id的IDWorker对象在进程间同步，即把IDWorker对象设为各个进程的共享对象，这一点很麻烦，
+如果是自己在业务代码里创建几个进程，尚可以通过manager进程管理器fork出几个子进程，这几个进程由manager全局统一管理，共享对象也可以通过
+manager在进程间同步、共享，让其在进程之间互相可见，但是如果是复杂对象，还需要序列化，非常麻烦（不过是用jsonpickle序列化反序列化会很简单），
+序列化之后还需要对共享的IDWorker对象加进程锁，以防冲突。
+但是flask运行的多进程，是由wsgi服务器创建的，属于非常底层的进程，我们不能直接操作，修改其源代码会让其与我们的业务代码耦合，绝对不允许，
+而且其也为暴露出任何函数接口之类的东西，供我们在进程间共享变量。
+
+因此，通过redis来解决不同进程变量、对象的同步问题，雪花算法中，不同机器（跨机器进程）之间通过数据中心id、机器号来区分。而本机不同进程之间，
+唯一需要同步的变量就只有时间戳和序列号了，把这两个全局变量放入redis中即可，操作的时候调用redis的锁，非常方便
+
+
+5.后台session水平扩展的问题：
+
+开发一个基于redis的session管理组件，生成一个token当作session id，用于前后端交互，token在redis中的值是loginId（一般使用用户id），
+作为后端真正的会话id。session里的内容可以有会话用户、权限信息、角色信息，以及csrf token等。
+csrf token在token存在于cookie中的时候需要开启，登录后生成2个token：权限token和csrf token，可放到响应体或响应头中，csrf token建议放到
+响应头中，因为csrf token为了安全起见是需要每次刷新的，刷新后的csrf token放到响应头里，前端的Ajax（layui的jQuery里的Ajax）可以通过
+全局配置complete函数来判断后端响应信息中有无csrf token，有的话存到localStorage中，然后全局配置beforeSend函数，每次发请求前把csrf token
+从localStorage中取出，放到请求头里。这样就避免了每次手动存取的麻烦。权限token也可以像csrf token这样操作
+全局配置的complete函数和beforeSend函数，里面进行的操作最好全部抽成一个函数，因为有的组件不是通过Ajax实现，或者他们有自己的实现方式、Ajax，
+这样即使对于这些组件手动配置，也不需要复制粘贴相同的逻辑代码，以避免造成后期维护困难，layui的table、dtree等组件目前已全部支持添加请求头、
+complete函数和beforeSend函数
+
+
+7.flask-redis-token旧token残留的问题
+
+当用户登录时选择记住我，而后又将浏览器cookie或localStorage里的token删除掉，那就相当于没登录，
+后期再登录的时候，login id由于相同，会覆盖原来的，但token是随机生成的，因而登录逻辑里需要先清空旧的token数据
+
+
+8.购买小说章节时候的并发问题
+
+（1）单本购买的时候，应对多客户端（例如用户在购买章节前，在两个浏览器打开该章节的购买页面）用户同时点击购买按钮的情况：
+扣费的时候，在where条件里要加上以下2个条件：
+①用户余额>=章节所需屋币数量（价格）
+②user_buy_record用户购买记录表中，不存在当前用户对于本小说此章节的购买记录
+如果插入记录数（受影响行数）为0，则说明用户余额不足，或者在其他客户端成功购买了本章节，
+此时提示购买失败，用户刷新后就会明白原因，如果是重复购买，则刷新后可以支持看章节内容，
+如果是余额不足（用户再点击购买本章节的同时，还购买了其他（小说的）章节），这个时候用户再点击购买就会提示余额不足
+
+（2）批量购买
+就是多个单章节购买，任何一个章节购买失败，则返回失败，事务不会提交
+
+（3）无论是单章节购买，还是批量购买，可能存在这样的问题：
+判断余额是否充足时，能查到章节信息，但在生成购买记录或扣款的前一刻，章节突然被删了，
+这个时候仍旧会生成购买记录并扣款
+但是这里在sql里加index是否exists的判断比较鸡肋，意义不大，拿批量购买举例，在看第11章的时候，
+连续购买了10章，假设购买成功时，没有章节被删除，但是当看到第15章的时候，也是存在被删除的可能。
+因此，这个问题的关键不在于购买时需不需要判断章节是否存在，而是购买时以及购买后，章节被删除了怎么处理的问题。
+比如可以考虑搞个日终批量任务，对于当日查不到章节信息的购买记录，进行书币返还
+
+
+9.MySQL insert不支持where和if子句进行判断数据是否已存在，所以插入数据时，如果要进行判断，保护不重复插入且不触发主键/唯一约束报错，可以考虑以下两种方式
+（1）insert ignore into
+这种方式会加锁，导致性能较低，而且insert ignore也会导致主键多自增一次，使最终主键字段不连续，后一条数据比前一条大2
+（2）INSERT INTO xxx select 要插入的数据 from xxx where not exists
+示例一：插入多条记录
+假设有一个主键为 client_id 的 clients 表，可以使用下面的语句：
+INSERT INTO clients
+(client_id, client_name, client_type)
+SELECT supplier_id, supplier_name, 'advertising'
+FROM suppliers
+WHERE not exists (select * from clients
+where clients.client_id = suppliers.supplier_id);
+
+示例二：插入单条记录
+INSERT INTO clients
+(client_id, client_name, client_type)
+SELECT 10345, 'IBM', 'advertising'
+FROM dual
+WHERE not exists (select * from clients
+where clients.client_id = 10345);
+
+使用单条记录插入时，select xxx from dual的内容xxx，就是正常插入时values所传入的数据
+
+
+10.分库分表时，模型类如何获取问题：
+
+动态生成模型类
+class BookContent(object):
+    _mapper = {}
+
+    @staticmethod
+    def model(book_id=None, index_id=None) -> Type[db.Model]:
+        """
+        获取分库分表切片的模型类
+        :param book_id: 书（小说）id
+        :param index_id: 章节id
+        :return: 分库分表切片的模型类
+        """
+
+        # 确定数据源
+        if not current_app.config['DATABASE_SHARDING_ENABLE'] or not book_id:
+            data_source = 'ds1'
+        else:
+            data_source = f'ds{int(book_id) % 10}'
+
+        # 确定模型类名
+        if not current_app.config['TABLE_SHARDING_ENABLE'] or not index_id:
+            class_name = 'BookContent'
+            table_name = 'book_content'
+        else:
+            table_id = int(index_id) % 10
+            class_name = f'BookContent{table_id}'
+            table_name = f'book_content{table_id}'
+
+        ModelClass = BookContent._mapper.get(class_name, None)
+        if ModelClass is None:
+            ModelClass = type(class_name, (db.Model,), {
+                '__moduel__': __name__,
+                '__name__': class_name,
+                '__bind_key__': data_source,
+                '__tablename__': table_name,
+
+                'id': db.Column(db.BigInteger, primary_key=True),
+                'index_id': db.Column(db.BigInteger, unique=True),
+                'content': db.Column(db.String),
+            })
+            BookContent._mapper[class_name] = ModelClass
+
+        return ModelClass
+
+
+11.session管理：
+
+1.维护一个zset，登录的时候，把loginid放入到zset里，score为当前时间戳，每次活动之后重新赋值score（当前时间戳）
+2.列表查询的时候，直接从zset分页查询即可，按照score降序排序
+3.不再使用用户id做为loginid，改为账号，便于搜索
+4.搜索的时候，不再从zset分页查询，而是直接模糊匹配查询出所有的keys，然后排序后再分页，根据分页出来的keys，查出value。
+但是这样容易出现性能问题，即匹配到的数据较多，即使第一步只取出keys，性能也会比较低，所以可以考虑以下两种方案：
+（1）禁止模糊匹配，直接根据完整账号匹配
+（2）先统计key的数量，少于某个值则模糊匹配，否则精准匹配
+
+redis登录的sessionkey不支持分页，但是可以把sessionid放入zset
+分页的时候，先从zset里取出sessionid，再根据sessionid取会话信息的redis key
+搜索的时候根据条件模糊匹配，去除所有满足条件的key，然后利用分页参数确定start和end，对key列表切片达到分页效果，然后按照分页出来的key列表，查找出会话信息
+
+
+12.会话冻结：
+
+（1）会话冻结时，用户不能进行任何操作，包括退出操作，非Ajax请求则跳转至403界面，Ajax请求则提示会话被冻结，无权访问
+（2）用户清空cookie和站点数据之后，可以绕过会话冻结带来的无法登录问题：由于登录时会先判断是否存在token，cookie被清空，则必然会早不到token，
+会被判定为未登录，此时用户再登录，由于系统登录时会先清空旧的token和覆盖旧的session，那么会话冻结会变得形同虚设
+因此，登录清空token的时候，要先判断是否存在被冻结的session，存在则提示存在被冻结会话，并终止登录操作
+
+13.chatgpt写的sql
+
+-》我给你一段sql，帮我转成flask-sqlalchemy的写法
+-》当然可以，请提供你的SQL语句。
+-》SELECT af.author_id, a.pen_name, u.user_photo,
+       book.id AS book_id, book.book_name, book.last_index_id, book.last_index_name
+FROM novel_flask.author_follow af
+LEFT JOIN novel_flask.author a ON af.author_id = a.id
+LEFT JOIN novel_flask.user u ON a.user_id = u.id
+LEFT JOIN
+  ('
+  SELECT * FROM novel_flask.book b
+  LEFT JOIN
+      ('
+      SELECT MAX(id) AS max_id FROM novel_flask.book
+      WHERE status = 1
+      GROUP BY author_id'
+      ) AS t ON b.id = t.max_id
+  WHERE t.max_id IS NOT NULL
+  ) AS book
+  ON book.author_id = a.id
+WHERE af.user_id = 1 and a.status = 0
+ORDER BY af.create_time desc
+LIMIT 0, 10
+-》以下是将提供的SQL语句转换为Flask-SQLAlchemy的写法：
+
+```python
+from sqlalchemy import func
+
+author_follow = db.Table('author_follow',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
+    db.Column('author_id', db.Integer, db.ForeignKey('author.id'))
+)
+
+class Author(db.Model):
+    __tablename__ = 'author'
+    id = db.Column(db.Integer, primary_key=True)
+    pen_name = db.Column(db.String(50))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    status = db.Column(db.Integer)
+
+class User(db.Model):
+    __tablename__ = 'user'
+    id = db.Column(db.Integer, primary_key=True)
+    user_photo = db.Column(db.String(100))
+
+class Book(db.Model):
+    __tablename__ = 'book'
+    id = db.Column(db.Integer, primary_key=True)
+    book_name = db.Column(db.String(100))
+    last_index_id = db.Column(db.Integer)
+    last_index_name = db.Column(db.String(100))
+    status = db.Column(db.Integer)
+    author_id = db.Column(db.Integer, db.ForeignKey('author.id'))
+
+    @staticmethod
+    def get_max_book_id_by_author():
+        subquery = db.session.query(
+            func.max(Book.id).label('max_id')
+        ).filter(Book.status == 1).group_by(Book.author_id).subquery()
+        return db.session.query(Book).join(subquery, Book.id == subquery.c.max_id).filter(subquery.c.max_id != None)
+
+query_result = db.session.query(
+    author_follow.c.author_id,
+    Author.pen_name,
+    User.user_photo,
+    Book.id.label('book_id'),
+    Book.book_name,
+    Book.last_index_id,
+    Book.last_index_name
+).select_from(author_follow
+).join(Author, author_follow.c.author_id == Author.id
+).join(User, Author.user_id == User.id
+).outerjoin(Book, Book.author_id == Author.id
+).filter(author_follow.c.user_id == 1
+).filter(Author.status == 0
+).order_by(author_follow.c.create_time.desc()
+).limit(10).all()
+```

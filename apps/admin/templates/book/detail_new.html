@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>小说详情</title>
+    {% include 'admin/common/header.html' %}
+</head>
+<body>
+<form class="layui-form" action="" lay-filter="myForm">
+    <div class="mainBox">
+        <div class="main-container">
+            <div class="main-container">
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">小说ID：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="id" class="layui-input layui-disabled">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">小说名：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="book_name" class="layui-input layui-disabled">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">封面：</label>
+                    <div class="layui-input-block">
+                        <img id="pic_url" class="photo" style="max-width: 100%; height: 100%; cursor: pointer;" src="">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">作品方向：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="work_direction_name" class="layui-input layui-disabled">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">分类名：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="cat_name" class="layui-input layui-disabled">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">作者名：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="author_name" class="layui-input layui-disabled">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">书籍状态：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="status_name" class="layui-input layui-disabled">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">点击量：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="visit_count" class="layui-input layui-disabled">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">总字数：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="word_count" class="layui-input layui-disabled">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">评论数：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="comment_count" class="layui-input layui-disabled">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">昨日订阅数：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="yesterday_buy" class="layui-input layui-disabled">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">最新章节：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="last_index_name" class="layui-input layui-disabled">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">最新章节更新时间：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="last_index_update_time_name" class="layui-input layui-disabled">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">是否收费：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="is_vip_name" class="layui-input layui-disabled">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">添加时间：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="create_time_name" class="layui-input layui-disabled">
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</form>
+{% include 'admin/common/footer.html' %}
+<script>
+  layui.use(['form', 'jquery'], function () {
+    let form = layui.form
+    let $ = layui.jquery
+
+    let bookId = getUrlParam('id');
+    let params = {id: bookId}
+    let data = loadData('/admin/book/get_detail', params, "myForm");
+    console.log(data);
+    $('#pic_url').attr('src', data.pic_url);
+
+  })
+</script>
+<script>
+</script>
+</body>
+</html>

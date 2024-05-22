@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>添加邀请码</title>
+  {% include 'admin/common/header.html' %}
+</head>
+
+<body>
+  <form class="layui-form">
+    <div class="mainBox">
+      <div class="main-container">
+        <div class="main-container">
+
+          <input type="hidden" id="cat_name" name="cat_name"/>
+
+          <div class="layui-form-item">
+            <label class="layui-form-label required">邀请码：</label>
+            <div class="layui-input-block">
+              <input type="text" name="invite_code" lay-verify="required|invite_code" autocomplete="off" placeholder="邀请码"
+                class="layui-input">
+            </div>
+          </div>
+
+          <div class="layui-inline">
+              <label class="layui-form-label required">有效时间</label>
+              <div class="layui-input-inline">
+                   <input class="layui-input" id="validity_time" name="validity_time" lay-verify="required|validity_time" type="text" placeholder="yyyy-MM-dd HH:mm:ss">
+              </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <div class="bottom">
+      <div class="button-container">
+        <button type="submit" class="pear-btn pear-btn-primary pear-btn-sm" lay-submit=""
+          lay-filter="invite_code-save">
+          <i class="layui-icon layui-icon-ok"></i>
+          提交
+        </button>
+        <button type="reset" class="pear-btn pear-btn-sm">
+          <i class="layui-icon layui-icon-refresh"></i>
+          重置
+        </button>
+      </div>
+    </div>
+  </form>
+  {% include 'admin/common/footer.html' %}
+  <script>
+    layui.use(['form', 'jquery', 'laydate'], function () {
+      const form = layui.form
+      const $ = layui.jquery
+      const laydate = layui.laydate;
+
+      var end = laydate.render({
+        elem: '#validity_time'
+        ,min : getRecentMinute(30)
+        ,trigger: 'click'
+        ,value: getRecentMinute(30)//默认值今天
+        ,type: 'datetime'
+        ,done: function(value, date){
+            //console.log(date);
+         }
+      });
+
+      loadCategories('cat_id', null);
+
+      form.verify({
+        //我们既支持上述函数式的方式，也支持下述数组的形式
+        //数组的两个值分别代表：[正则匹配、匹配不符时的提示文字]
+        invite_code: function (value) {
+          if (value.length > 10) {
+            return '邀请码最多20位';
+          }
+        },
+      });
+
+      form.on('submit(invite_code-save)', function (data) {
+        let loading = layer.load()
+        $.ajax({
+          url: '/admin/invite_code/save',
+          data: JSON.stringify(data.field),
+          dataType: 'json',
+          contentType: 'application/json',
+          type: 'post',
+          success: function (result) {
+            layer.close(loading)
+            if (result.success) {
+              layer.msg(result.msg, { icon: 1, time: 1000 }, function () {
+                parent.layer.close(parent.layer.getFrameIndex(window.name))//关闭当前页
+                parent.layui.table.reload('invite_code-table')
+              })
+            } else {
+              layer.msg(result.msg, { icon: 2, time: 1000 })
+            }
+          }
+        })
+        return false
+      })
+    })
+  </script>
+  <script>
+  </script>
+</body>
+
+</html>

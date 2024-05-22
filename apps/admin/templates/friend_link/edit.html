@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>小说推荐修改</title>
+    {% include 'admin/common/header.html' %}
+</head>
+<body>
+<form class="layui-form" action="" lay-filter="myForm">
+    <div class="mainBox">
+        <div class="main-container">
+            <div class="main-container">
+                <input type="hidden" name="id" value="{{ data.id }}">
+                <div class="layui-form-item">
+                    <label class="layui-form-label required">链接名：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="link_name" lay-verify="required" class="layui-input" value="{{ data.link_name }}">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label required">链接url：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="link_url" lay-verify="required" class="layui-input" value="{{ data.link_url }}">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label required">排序号：</label>
+                    <div class="layui-input-block">
+                       <input type="text" name="sort" lay-verify="required|sort" autocomplete="off" placeholder="排序"
+                               class="layui-input" value="{{ data.sort }}">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label required">是否开启：</label>
+                    <div class="layui-input-block">
+                        <select id="type" name="is_open" lay-verify="required" class="dict-select" dict-key="is_enable" def-value="{{ data.is_open }}">
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="bottom">
+        <div class="button-container">
+            <button type="submit" class="pear-btn pear-btn-primary pear-btn-sm" lay-submit=""
+                    lay-filter="friend-link-update">
+                <i class="layui-icon layui-icon-ok"></i>
+                提交
+            </button>
+            <button type="reset" class="pear-btn pear-btn-sm">
+                <i class="layui-icon layui-icon-refresh"></i>
+                重置
+            </button>
+        </div>
+    </div>
+</form>
+{% include 'admin/common/footer.html' %}
+<script>
+  layui.use(['form', 'jquery'], function () {
+    let form = layui.form
+    let $ = layui.jquery
+
+    //form.val("myForm", {{ data }});
+    loadDicts();
+
+    form.verify({
+            //我们既支持上述函数式的方式，也支持下述数组的形式
+            //数组的两个值分别代表：[正则匹配、匹配不符时的提示文字]
+            sort: function (value) {
+		        if (value.length > 2) {
+		            return '排序号最多两位';
+		        }
+		    },
+        });
+
+    form.on('submit(friend-link-update)', function (data) {
+      $.ajax({
+        url: '/admin/friend_link/update',
+        data: JSON.stringify(data.field),
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'put',
+        success: function (result) {
+          if (result.success) {
+            layer.msg(result.msg, { icon: 1, time: 1000 }, function () {
+              parent.layer.close(parent.layer.getFrameIndex(window.name))//关闭当前页
+              parent.layui.table.reload('friend-link-table')
+              //parent.render()
+            })
+          } else {
+            layer.msg(result.msg, { icon: 2, time: 1000 })
+          }
+        },
+        error: function () {
+            layer.msg('网络错误', { icon: 2, time: 1000 })
+        }
+      })
+      return false
+    })
+  })
+</script>
+<script>
+</script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>小说推荐修改</title>
+    {% include 'admin/common/header.html' %}
+</head>
+<body>
+<form class="layui-form" action="" lay-filter="myForm">
+    <div class="mainBox">
+        <div class="main-container">
+            <div class="main-container">
+                <input type="hidden" name="id" value="{{ data.id }}">
+                <div class="layui-form-item">
+                    <label class="layui-form-label required">小说ID：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="book_id" lay-verify="required" class="layui-input layui-disabled" value="{{ data.book_id }}">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label required">排序号：</label>
+                    <div class="layui-input-block">
+                       <input type="text" name="sort" lay-verify="required|sort" autocomplete="off" placeholder="排序"
+                               class="layui-input" value="{{ data.sort }}">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label required">推荐类型：</label>
+                    <div class="layui-input-block">
+                        <select id="type" name="type" lay-verify="required" class="dict-select" dict-key="book_rec_type" def-value="{{ data.type }}">
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="bottom">
+        <div class="button-container">
+            <button type="submit" class="pear-btn pear-btn-primary pear-btn-sm" lay-submit=""
+                    lay-filter="book-setting-update">
+                <i class="layui-icon layui-icon-ok"></i>
+                提交
+            </button>
+            <button type="reset" class="pear-btn pear-btn-sm">
+                <i class="layui-icon layui-icon-refresh"></i>
+                重置
+            </button>
+        </div>
+    </div>
+</form>
+{% include 'admin/common/footer.html' %}
+<script>
+  layui.use(['form', 'jquery'], function () {
+    let form = layui.form
+    let $ = layui.jquery
+
+    //form.val("myForm", {{ data }});
+    loadDicts();
+
+    form.verify({
+            //我们既支持上述函数式的方式，也支持下述数组的形式
+            //数组的两个值分别代表：[正则匹配、匹配不符时的提示文字]
+            sort: function (value) {
+		        if (value.length > 2) {
+		            return '排序号最多两位';
+		        }
+		    },
+        });
+
+    form.on('submit(book-setting-update)', function (data) {
+      $.ajax({
+        url: '/admin/book_setting/update',
+        data: JSON.stringify(data.field),
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'put',
+        success: function (result) {
+          if (result.success) {
+            layer.msg(result.msg, { icon: 1, time: 1000 }, function () {
+              parent.layer.close(parent.layer.getFrameIndex(window.name))//关闭当前页
+              parent.layui.table.reload('book-setting-table')
+              //parent.render()
+            })
+          } else {
+            layer.msg(result.msg, { icon: 2, time: 1000 })
+          }
+        }
+      })
+      return false
+    })
+  })
+</script>
+<script>
+</script>
+</body>
+</html>

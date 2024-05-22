@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>作家列表</title>
+    {% include 'admin/common/header.html' %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin/admin/css/other/user.css') }}"/>
+    <style type="text/css">
+<!--      {# 设置table每一行的height #}-->
+      .layui-table-cell {
+           height: auto;
+           line-height: 50px;
+      }
+     </style>
+</head>
+<body class="pear-container">
+{# 查询表单 #}
+<div class="layui-card">
+    <div class="layui-card-body">
+        <form class="layui-form" action="" lay-filter="author-query-form">
+            <div class="layui-form-item">
+                <div class="layui-inline">
+                    <label class="layui-form-label">作者名</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="pen_name" placeholder="" class="layui-input">
+                    </div>
+                </div>
+
+                <button class="pear-btn pear-btn-md pear-btn-primary" lay-submit lay-filter="author-query">
+                    <i class="layui-icon layui-icon-search"></i>
+                    查询
+                </button>
+                <button type="reset" class="pear-btn pear-btn-md">
+                    <i class="layui-icon layui-icon-refresh"></i>
+                    重置
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{# 表格 #}
+<div class="user-main user-collasped">
+    <div class="layui-card">
+        <div class="layui-card-body">
+            <table id="author-table" lay-filter="author-table"></table>
+        </div>
+    </div>
+</div>
+</body>
+
+{# 用户删除操作 #}
+<script type="text/html" id="author-bar">
+    {% if authorize("admin:author:detail") %}
+        <button class="pear-btn pear-btn-warming pear-btn-sm" lay-event="detail">
+            <i class="layui-icon layui-icon-transfer"></i>
+        </button>
+    {% endif %}
+</script>
+
+{% include 'admin/common/footer.html' %}
+
+{# 冻结与解冻 #}
+<script type="text/html" id="author-status">
+    <input type="checkbox" name="status" value="{{ "{{ d.id }}" }}" lay-skin="switch" lay-text="正常|冻结"
+           lay-filter="author-status"
+            {{ "{{# if(d.status==0){ }} checked {{# } }}" }} />
+</script>
+
+<script>
+  layui.use(['table', 'form', 'jquery', 'popup', 'common'], function () {
+    let table = layui.table
+    let form = layui.form
+    let $ = layui.jquery
+    let popup = layui.popup
+    let common = layui.common
+    let MODULE_PATH = '/admin/author/'
+
+    loadDicts();
+    loadCategories('category')
+
+    // 表格数据
+    let cols = [
+      [
+        { title: '序号', type: 'numbers', align: 'center' },
+        { title: '邀请码', field: 'invite_code', align: 'center' },
+        { title: '笔名', field: 'pen_name', align: 'center' },
+        { title: '手机号码', field: 'tel_phone', align: 'center' },
+        { title: 'QQ或微信账号', field: 'chat_account', align: 'center' },
+        { title: '电子邮箱', field: 'email', align: 'center' },
+        { title: '作品方向', field: 'work_direction_name', align: 'center' },
+        { title: '入驻时间', field: 'create_time_name', align: 'center' },
+        {% if authorize("admin:author:enable_disable") %}
+          { title: '状态', field: 'status', align: 'center', templet: '#author-status' },
+        {% else %}
+          { title: '状态', field: 'status_name', align: 'center' },
+        {% endif %}
+      ]
+    ]
+
+    // 渲染表格数据
+    table.render({
+      elem: '#author-table',
+      url: MODULE_PATH + 'data',
+      page: true,
+      cols: cols,
+      skin: 'line',
+      height: 'full-148',
+      toolbar: '#author-toolbar', /*工具栏*/
+      text: { none: '暂无小说信息' },
+      defaultToolbar: [{ layEvent: 'refresh', icon: 'layui-icon-refresh' }, 'filter', 'print', 'exports'] /*默认工具栏*/
+    })
+
+    table.on('rowDouble(author-table)', function (obj) {
+        window.detail((obj))
+    });
+
+    table.on('toolbar(author-table)', function (obj) {
+      if (obj.event === 'refresh') {
+        window.refresh()
+      }
+    })
+    
+    table.on('tool(author-table)', function (obj) {
+      if (obj.event === 'remove') {
+        window.remove(obj)
+      } else if (obj.event === 'photo') {
+        window.photo(obj)
+      } else if (obj.event === 'detail') {
+        window.detail((obj))
+      }
+    })
+
+    form.on('submit(author-query)', function (data) {
+      window.refresh(data.field)
+      return false
+    })
+
+    form.on('switch(author-status)', function (obj) {
+      let operate
+      if (obj.elem.checked) {
+        operate = 'enable'
+      } else {
+        operate = 'disable'
+      }
+      let loading = layer.load()
+      $.ajax({
+        url: MODULE_PATH + operate,
+        data: JSON.stringify({ id: this.value }),
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'put',
+        success: function (result) {
+          layer.close(loading)
+          if (result.success) {
+            popup.success(result.msg)
+          } else {
+            popup.failure(result.msg)
+          }
+        }
+      })
+    })
+
+    window.refresh = function (param) {
+      table.reload('author-table', { where: param })
+    }
+
+
+  })
+</script>
+</html>

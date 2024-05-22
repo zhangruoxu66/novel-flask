@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>小说列表</title>
+    {% include 'admin/common/header.html' %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin/admin/css/other/user.css') }}"/>
+    <style type="text/css">
+<!--      {# 设置table每一行的height #}-->
+      .layui-table-cell {
+           height: auto;
+           line-height: 50px;
+      }
+     </style>
+</head>
+<body class="pear-container">
+{# 查询表单 #}
+<div class="layui-card">
+    <div class="layui-card-body">
+        <form class="layui-form" action="" lay-filter="book-query-form">
+            <div class="layui-form-item">
+                <div class="layui-inline">
+                    <label class="layui-form-label">小说名</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="book_name" placeholder="" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-inline">
+                    <label class="layui-form-label">作者名</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="author_name" placeholder="" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-inline">
+                    <label class="layui-form-label">作品方向</label>
+                    <div class="layui-input-inline">
+                        <select id="work_direction" name="work_direction" class="dict-select" dict-key="work_direction">
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-inline">
+                    <label class="layui-form-label">小说分类</label>
+                    <div class="layui-input-inline">
+                        <select id="category" name="category" lay-search="">
+                          <option value="">直接选择或搜索选择</option>
+                        </select>
+                        <!--<div class="layui-form-select">
+                            <div class="layui-select-title">
+                                <input type="text" placeholder="直接选择或搜索选择" value="" class="layui-input">
+                                <i class="layui-edge"></i>
+                            </div>
+                            <dl class="layui-anim layui-anim-upbit" style="">
+                                <dd lay-value="" class="layui-select-tips">直接选择或搜索选择</dd>
+                                <dd lay-value="1" class="">layer</dd>
+                                <dd lay-value="2" class="">form</dd>
+                                <dd lay-value="3" class="">layim</dd>
+                                <dd lay-value="4" class="">element</dd>
+                            </dl>
+                        </div>-->
+                    </div>
+                </div>
+                <div class="layui-inline">
+                    <label class="layui-form-label">书籍状态</label>
+                    <div class="layui-input-inline">
+                        <select id="book_status" name="book_status" class="dict-select" dict-key="book_status">
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-inline">
+                    <label class="layui-form-label">是否收费</label>
+                    <div class="layui-input-inline">
+                        <select id="is_vip" name="is_vip" class="dict-select" dict-key="book_is_vip">
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-inline">
+                    <label class="layui-form-label">排列方式</label>
+                    <div class="layui-input-inline">
+                        <select id="order_by" name="order_by" class="dict-select" dict-key="book_order_by_type">
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-inline">
+                    <label class="layui-form-label">在架状态</label>
+                    <div class="layui-input-inline">
+                        <select id="status" name="status" class="dict-select" dict-key="on_off_status">
+                        </select>
+                    </div>
+                </div>
+
+                <button class="pear-btn pear-btn-md pear-btn-primary" lay-submit lay-filter="book-query">
+                    <i class="layui-icon layui-icon-search"></i>
+                    查询
+                </button>
+                <button type="reset" class="pear-btn pear-btn-md">
+                    <i class="layui-icon layui-icon-refresh"></i>
+                    重置
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{# 表格 #}
+<div class="user-main user-collasped">
+    <div class="layui-card">
+        <div class="layui-card-body">
+            <table id="book-table" lay-filter="book-table"></table>
+        </div>
+    </div>
+</div>
+</body>
+
+{# 表格操作 #}
+<script type="text/html" id="book-toolbar">
+    {% if authorize("admin:book:remove") %}
+        <button class="pear-btn pear-btn-md" lay-event="batchRemove">
+            <i class="pear-icon pear-icon-ashbin"></i>
+            删除
+        </button>
+    {% endif %}
+    {% if authorize("admin:book:edit") %}
+        <button class="pear-btn pear-btn-md" lay-event="clearComments">
+            <i class="pear-icon pear-icon-ashbin"></i>
+            清空评论
+        </button>
+    {% endif %}
+</script>
+
+{# 用户删除操作 #}
+<script type="text/html" id="book-bar">
+    {% if authorize("admin:book:detail") %}
+        <button class="pear-btn pear-btn-warming pear-btn-sm" lay-event="detail">
+            <i class="layui-icon layui-icon-transfer"></i>
+        </button>
+    {% endif %}
+    {% if authorize("admin:book:remove") %}
+        <button class="pear-btn pear-btn-danger pear-btn-sm" lay-event="remove"><i
+                class="pear-icon pear-icon-ashbin"></i>
+        </button>
+    {% endif %}
+</script>
+
+{% include 'admin/common/footer.html' %}
+
+{# 上架与下架 #}
+<script type="text/html" id="on-off-status">
+    <input type="checkbox" name="enable" value="{{ "{{ d.id }}" }}" lay-skin="switch" lay-text="在架|下架"
+           lay-filter="on-off-status"
+            {{ "{{# if(d.status == 1){ }} checked {{# } }}" }} />
+</script>
+
+{# 打开关闭评论区 #}
+<script type="text/html" id="open-close-comment">
+    <input type="checkbox" name="enable" value="{{ "{{ d.id }}" }}" lay-skin="switch" lay-text="开启|关闭"
+           lay-filter="open-close-comment"
+            {{ "{{# if(d.comment_enabled == 1){ }} checked {{# } }}" }} />
+</script>
+
+<script>
+  layui.use(['table', 'form', 'jquery', 'popup', 'common'], function () {
+    let table = layui.table
+    let form = layui.form
+    let $ = layui.jquery
+    let dtree = layui.dtree
+    let popup = layui.popup
+    let common = layui.common
+    let MODULE_PATH = '/admin/book/'
+
+    loadDicts();
+    loadCategories('category')
+
+    // 表格数据
+    let cols = [
+      [
+        {% if authorize("admin:book_setting:remove") %}
+          { type: 'checkbox' },
+        {% endif %}
+        { title: '序号', type: 'numbers', align: 'center' },
+        { title: '小说ID', field: 'id', align: 'center', width: 200 },
+        { title: '小说名', field: 'book_name', align: 'center', width: 150 },
+        { title: '评论区', field: 'comment_enabled', align: 'center', width: 150, templet: '#open-close-comment' },
+        { title: '在架状态', field: 'status', align: 'center', width: 150, templet: '#on-off-status' },
+        {
+            title: '封面', field: 'pic_url', align: 'center', width: 100,
+            templet: function (d) {
+                return '<img class="photo" style="max-width: 100%;\n' +
+                  '  height: 100%;\n' +
+                  '  cursor: pointer;" lay-event="photo" src=" ' + d.pic_url + '"></i>'
+            }
+        },
+        { title: '作品方向', field: 'work_direction', align: 'center', width: 100, hide: true },
+        { title: '作品方向', field: 'work_direction_name', align: 'center', width: 100 },
+        { title: '分类名', field: 'cat_name', align: 'center', width: 100 },
+        { title: '作者名', field: 'author_name', align: 'center', width: 100 },
+        { title: '书籍状态', field: 'book_status', align: 'center', width: 100, hide: true },
+        { title: '书籍状态', field: 'book_status_name', align: 'center', width: 100 },
+        { title: '点击量', field: 'visit_count', align: 'center', width: 100 },
+        { title: '总字数', field: 'word_count', align: 'center', width: 100 },
+        { title: '评论数', field: 'comment_count', align: 'center', width: 100 },
+        { title: '昨日订阅数', field: 'yesterday_buy', align: 'center', width: 100 },
+        { title: '最新章节', field: 'last_index_name', align: 'center', width: 100 },
+        { title: '最新章节更新时间', field: 'last_index_update_time', align: 'center', width: 180, hide: true },
+        { title: '最新章节更新时间', field: 'last_index_update_time_name', align: 'center', width: 180 },
+        { title: '是否收费', field: 'is_vip', align: 'center', width: 100, hide: true },
+        { title: '是否收费', field: 'is_vip_name', align: 'center', width: 100 },
+        { title: '添加时间', field: 'create_time', align: 'center', width: 180, hide: true },
+        { title: '添加时间', field: 'create_time_name', align: 'center', width: 180 },
+        { title: '操作', toolbar: '#book-bar', align: 'center', width: 130 }
+      ]
+    ]
+
+    // 渲染表格数据
+    table.render({
+      elem: '#book-table',
+      url: MODULE_PATH + 'data',
+      page: true,
+      cols: cols,
+      skin: 'line',
+      height: 'full-148',
+      toolbar: '#book-toolbar', /*工具栏*/
+      text: { none: '暂无小说信息' },
+      defaultToolbar: [{ layEvent: 'refresh', icon: 'layui-icon-refresh' }, 'filter', 'print', 'exports'] /*默认工具栏*/
+    });
+
+    form.on('switch(on-off-status)', function (obj) {
+      let operate
+      if (obj.elem.checked) {
+        operate = 'enable'
+      } else {
+        operate = 'disable'
+      }
+      let loading = layer.load()
+      $.ajax({
+        url: MODULE_PATH + operate,
+        data: JSON.stringify({ id: this.value }),
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'put',
+        success: function (result) {
+          layer.close(loading)
+          if (result.success) {
+            popup.success(result.msg)
+            window.refresh()
+          } else {
+            popup.failure(result.msg)
+            window.refresh()
+          }
+        }
+      });
+    });
+
+    form.on('switch(open-close-comment)', function (obj) {
+      let operate
+      if (obj.elem.checked) {
+        operate = 'openComment'
+      } else {
+        operate = 'closeComment'
+      }
+      let loading = layer.load()
+      $.ajax({
+        url: MODULE_PATH + operate,
+        data: JSON.stringify({ id: this.value }),
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'put',
+        success: function (result) {
+          layer.close(loading)
+          if (result.success) {
+            popup.success(result.msg)
+            window.refresh()
+          } else {
+            popup.failure(result.msg)
+            window.refresh()
+          }
+        }
+      });
+    });
+
+    window.detail = function (obj) {
+      layer.open({
+          type: 2,
+          title: '查看详情',
+          shade: 0.1,
+          area: ['550px', '550px'],
+          content: MODULE_PATH + 'detail?id=' + obj.data['id']
+      })
+    }
+
+    table.on('rowDouble(book-table)', function (obj) {
+        window.detail((obj))
+    });
+
+    table.on('toolbar(book-table)', function (obj) {
+      if (obj.event === 'refresh') {
+        window.refresh()
+      } else if (obj.event === 'batchRemove') {
+        window.batchRemove(obj)
+      } else if (obj.event === 'clearComments') {
+        window.clearComments(obj)
+      }
+    })
+    
+    table.on('tool(book-table)', function (obj) {
+      if (obj.event === 'remove') {
+        window.remove(obj)
+      } else if (obj.event === 'photo') {
+        window.photo(obj)
+      } else if (obj.event === 'detail') {
+        window.detail((obj))
+      }
+    })
+
+    window.remove = function (obj) {
+      layer.confirm('确定要删除', { icon: 3, title: '提示' }, function (index) {
+        layer.close(index)
+        let loading = layer.load()
+        var ids = [obj.data['id']]
+        $.ajax({
+          url: MODULE_PATH + 'remove',
+          data: { ids: ids },
+          dataType: 'json',
+          type: 'delete',
+          success: function (result) {
+            layer.close(loading)
+            if (result.success) {
+              popup.success(result.msg, function () {
+                obj.del()
+              })
+            } else {
+              popup.failure(result.msg)
+            }
+          }
+        })
+      })
+    }
+
+    window.batchRemove = function (obj) {
+      let data = table.checkStatus(obj.config.id).data
+      if (data.length === 0) {
+        layer.msg('未选中数据', {
+          icon: 3,
+          time: 1000
+        })
+        return false
+      }
+      var ids = []
+      var hasCheck = table.checkStatus('book-table')
+      var hasCheckData = hasCheck.data
+      if (hasCheckData.length > 0) {
+        $.each(hasCheckData, function (index, element) {
+          ids.push(element.id)
+        })
+      }
+      console.log(ids);
+      layer.confirm('确定要删除选中数据', {
+        icon: 3,
+        title: '提示'
+      }, function (index) {
+        layer.close(index)
+        let loading = layer.load()
+        $.ajax({
+
+          url: MODULE_PATH + 'remove',
+          data: { ids: ids },
+          dataType: 'json',
+          type: 'delete',
+          success: function (result) {
+            layer.close(loading)
+            if (result.success) {
+              popup.success(result.msg, function () {
+                table.reload('book-table')
+              })
+            } else {
+              popup.failure(result.msg)
+            }
+          }
+        })
+      })
+    }
+
+
+    window.clearComments = function (obj) {
+      let data = table.checkStatus(obj.config.id).data
+      if (data.length === 0) {
+        layer.msg('未选中数据', {
+          icon: 3,
+          time: 1000
+        })
+        return false
+      }
+      var ids = []
+      var hasCheck = table.checkStatus('book-table')
+      var hasCheckData = hasCheck.data
+      if (hasCheckData.length > 0) {
+        $.each(hasCheckData, function (index, element) {
+          ids.push(element.id)
+        })
+      }
+      console.log(ids);
+      layer.confirm('确定要清空选中小说的评论？', {
+        icon: 3,
+        title: '提示'
+      }, function (index) {
+        layer.close(index)
+        let loading = layer.load()
+        $.ajax({
+
+          url: MODULE_PATH + 'clearComments',
+          data: { ids: ids },
+          dataType: 'json',
+          type: 'delete',
+          success: function (result) {
+            layer.close(loading)
+            if (result.success) {
+              popup.success(result.msg)
+            } else {
+              popup.failure(result.msg)
+            }
+          }
+        })
+      })
+    }
+
+    form.on('submit(book-query)', function (data) {
+      window.refresh(data.field)
+      return false
+    })
+
+    window.refresh = function (param) {
+      table.reload('book-table', { where: param })
+    }
+
+
+    // 查看大图
+    window.photo = function (obj) {
+      if (!obj.data.pic_url || obj.data.pic_url === '') {
+        layer.msg('图片地址错误！')
+        return
+      }
+      var auto_img = {}
+      var img = new Image()
+      img.src = obj.data.pic_url
+      img.onload = function () {
+        var max_height = $(window).height() - 100
+        var max_width = $(window).width()
+        var rate1 = max_height / img.height
+        var rate2 = max_width / img.width
+        var rate3 = 1
+        var rate = Math.min(rate1, rate2, rate3)
+        auto_img.height = img.height * rate
+        auto_img.width = img.width * rate
+        layer.open({
+          type: 1,
+          title: false,
+          area: ['auto'],
+          skin: 'layui-layer-nobg', //没有背景色
+          shadeClose: true,
+          content: '<img src=\'' + obj.data['pic_url'] + '\' width=\'' + auto_img.width + 'px\' height=\'' + auto_img.height + 'px\'>'
+        })
+      }
+    }
+
+    
+  })
+</script>
+</html>
